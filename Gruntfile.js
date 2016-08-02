@@ -143,6 +143,8 @@ module.exports = function (grunt) {
     grunt.initConfig(_.extend(taskConfig, fileConfig));
 
     grunt.registerTask('default', ['build', 'compile']);
+    grunt.registerTask('forDebug', ['build', 'compileReadable']);
     grunt.registerTask('build', ['clean:all', 'html2js', 'copy:build_appjs']);
     grunt.registerTask('compile', ['concat:compile_js', 'uglify']);
+    grunt.registerTask('compileReadable', ['concat:compile_js']);
 };
