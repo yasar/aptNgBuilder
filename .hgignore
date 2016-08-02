@@ -1,2 +1,5 @@
 syntax: glob
 *.iml
+bin
+build
+node_modules
