@@ -1,0 +1,15 @@
+<form ng-submit="<<vm>>.form.submit()" role="form" novalidate>
+    <div ng-include="'<<contentPath>>'"></div>
+    <div class="form-group no-margin">
+        <div class="text-right">
+            <apt-button type="button" class="btn btn-xs btn-default"
+                        action-type="cancel" label="'Cancel'"
+                        data-ng-click="<<vm>>.form.cancel()"></apt-button>
+            <apt-button type="submit" class="btn btn-xs btn-default"
+                        action-type="post" label="<<vm>>.form.submitLabel"
+                        data-ng-click="<<vm>>.form.cancel()"
+                        is-busy="<<vm>>.form.isSaving"
+                        is-failed="<<vm>>.form.isSavingFailed"></apt-button>
+        </div>
+    </div>
+</form>
