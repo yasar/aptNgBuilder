@@ -140,34 +140,34 @@ function aptCreateModuleService(builder) {
 
             function getTemplate() {
                 return '<form ng-submit="vmStatusForm.form.submit()" role="form">' +
-                       ' <apt-panel class="no-margin" form="vmStatusForm.form">' +
-                       ' <apt-panel-title>' +
-                       ' <i class="' + builder.icon + ' position-left"></i>' +
-                       ' <span class="text-semibold" translate>Status Update</span>' +
-                       ' </apt-panel-title>' +
-                       ' <apt-panel-body class="text-center">' +
-                       ' <div ng-if="vmStatusForm.isStatusUpdatable==null"' +
-                       ' class="content"><span translate>Please wait..</span>' +
-                       ' </div>' +
-                       ' <div ng-if="vmStatusForm.isStatusUpdatable==false"' +
-                       ' class="alert alert-warning"><span translate>The status for this record can not be changed.</span>' +
-                       ' </div>' +
-                       ' <div ng-if="vmStatusForm.isStatusUpdatable==true">' +
-                       ' <button type="button"' +
-                       ' class="btn btn-default btn-float ml-10 mr-10"' +
-                       ' ng-class="{\'btn-info\':vmStatusForm.form.data.status_id == status.type_id}"' +
-                       ' ng-click="vmStatusForm.setStatus(status)"' +
-                       ' data-ng-repeat="status in vmStatusForm.statuses">' +
-                       ' <i data-ng-class="{true:\'icon-play4\', false: \'icon-pause2\'}[vmStatusForm.form.data.status_id == status.type_id]"></i>' +
-                       ' <span>{{status.name|translate}}</span>' +
-                       ' </button>' +
-                       ' </div>' +
-                       ' </apt-panel-body>' +
-                       ' <apt-panel-footer ng-show="vmStatusForm.isStatusUpdatable==true">' +
-                       ' <apt-panel-footer-right defaults></apt-panel-footer-right>' +
-                       ' </apt-panel-footer>' +
-                       ' </apt-panel>' +
-                       ' </form>';
+                    ' <apt-panel class="no-margin" form="vmStatusForm.form">' +
+                    ' <apt-panel-title>' +
+                    ' <i class="' + builder.icon + ' position-left"></i>' +
+                    ' <span class="text-semibold" translate>Status Update</span>' +
+                    ' </apt-panel-title>' +
+                    ' <apt-panel-body class="text-center">' +
+                    ' <div ng-if="vmStatusForm.isStatusUpdatable==null"' +
+                    ' class="content"><span translate>Please wait..</span>' +
+                    ' </div>' +
+                    ' <div ng-if="vmStatusForm.isStatusUpdatable==false"' +
+                    ' class="alert alert-warning"><span translate>The status for this record can not be changed.</span>' +
+                    ' </div>' +
+                    ' <div ng-if="vmStatusForm.isStatusUpdatable==true">' +
+                    ' <button type="button"' +
+                    ' class="btn btn-default btn-float ml-10 mr-10"' +
+                    ' ng-class="{\'btn-info\':vmStatusForm.form.data.status_id == status.type_id}"' +
+                    ' ng-click="vmStatusForm.setStatus(status)"' +
+                    ' data-ng-repeat="status in vmStatusForm.statuses">' +
+                    ' <i data-ng-class="{true:\'icon-play4\', false: \'icon-pause2\'}[vmStatusForm.form.data.status_id == status.type_id]"></i>' +
+                    ' <span>{{status.name|translate}}</span>' +
+                    ' </button>' +
+                    ' </div>' +
+                    ' </apt-panel-body>' +
+                    ' <apt-panel-footer ng-show="vmStatusForm.isStatusUpdatable==true">' +
+                    ' <apt-panel-footer-right defaults></apt-panel-footer-right>' +
+                    ' </apt-panel-footer>' +
+                    ' </apt-panel>' +
+                    ' </form>';
             }
         }
 
@@ -282,7 +282,7 @@ function aptCreateModuleService(builder) {
             }
 
             return Restangular.copy(item)
-            // return item
+                // return item
                 .put()
                 .then(function (data) {
                     var filterObj = {},
@@ -361,7 +361,10 @@ function aptCreateModuleService(builder) {
             }
 
             function proceed() {
-                _builder.suffix = builder.form.suffix || _builder.suffix;
+                _builder.suffix = _.has(builder, 'form.suffix') && builder.form.suffix
+                    ? builder.form.suffix
+                    : _builder.suffix;
+
                 restOp.addNew(_builder);
             }
         }
