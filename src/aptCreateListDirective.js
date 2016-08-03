@@ -38,6 +38,7 @@ function aptCreateListDirective(builder) {
                  */
                 initialData         : '<?',
                 addNewConf          : '<',
+                editConf            : '<',
                 data                : '=?',
                 autoload            : '@?',
                 /**
@@ -141,7 +142,18 @@ function aptCreateListDirective(builder) {
         }
 
         function editFn(item, popup) {
-            return service.edit(item, popup);
+
+            /**
+             * edit conf ile dısarıdan popup
+             * suffix
+             * stay durumlarını set edebiliyoruz
+             */
+            if (_.isUndefined(vm.editConf)) {
+                vm.editConf = {};
+            }
+            _.defaults(vm.editConf, {popup: true, suffix: 'form', stay: true});
+            //return service.edit(item, popup);
+            return service.edit(item, vm.editConf);
         }
 
         function deleteFn(item) {
