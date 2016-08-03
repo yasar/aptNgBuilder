@@ -205,7 +205,12 @@ function aptCreateModuleService(builder) {
             var data, proceed = true;
 
             if (angular.isUndefined(popup)) {
-                popup = true;
+                popup    = true;
+                /**
+                 *
+                 * popup true ise default olarak stay true yapıyoruz boylece popup kapanmıyor
+                 */
+                var stay = true;
             }
 
             if (popup) {
@@ -231,6 +236,7 @@ function aptCreateModuleService(builder) {
                     data  : data,
                     popup : popup,
                     type  : builder.domain,
+                    stay  : stay ? stay :false,
                     suffix: _.has(builder, 'form.suffix') && builder.form.suffix
                         ? builder.form.suffix
                         : 'form'
@@ -323,6 +329,8 @@ function aptCreateModuleService(builder) {
                 initialData: null,
                 add_before : true,
                 popup      : true,
+                stay       : true,
+                suffix     : 'form',
                 confirm    : {
                     required: false,
                     title   : gettextCatalog.getString('Confirm'),
