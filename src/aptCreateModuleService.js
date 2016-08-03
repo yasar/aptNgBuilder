@@ -201,19 +201,64 @@ function aptCreateModuleService(builder) {
             });
         }
 
-        function edit(item, popup) {
+        /*  function edit(item, popup) {
+         var data, proceed = true;
+
+         if (angular.isUndefined(popup)) {
+         popup    = true;
+         /!**
+         *
+         * popup true ise default olarak stay true yapıyoruz boylece popup kapanmıyor
+         *!/
+         var stay = true;
+         }
+
+         if (popup) {
+         if (angular.isObject(item)) {
+         if (item.fromServer) {
+         data = item;
+         } else {
+         data = model.one(item[builder.domain + '_id']).get();
+         }
+         } else {
+         data = model.one(item).get();
+         }
+         } else {
+         data = item;
+         }
+
+         if (builder.service.edit.before) {
+         proceed = builder.service.edit.before.call(this, $injector, data, popup);
+         }
+
+         if (proceed) {
+         var _builder = _.merge({_builder: builder}, {
+         data  : data,
+         popup : popup,
+         type  : builder.domain,
+         stay  : stay ? stay :false,
+         suffix: _.has(builder, 'form.suffix') && builder.form.suffix
+         ? builder.form.suffix
+         : 'form'
+         });
+         // restOp.edit({type: builder.domain, data: data, popup: popup});
+         restOp.edit(_builder);
+         }
+         }
+         */
+
+        function edit(item, editConf) {
             var data, proceed = true;
 
-            if (angular.isUndefined(popup)) {
-                popup    = true;
-                /**
-                 *
-                 * popup true ise default olarak stay true yapıyoruz boylece popup kapanmıyor
-                 */
-                var stay = true;
+            if (!editConf) {
+                editConf = {
+                    popup : true,
+                    stay  : true,
+                    suffix: 'form'
+                }
             }
 
-            if (popup) {
+            if (editConf.popup) {
                 if (angular.isObject(item)) {
                     if (item.fromServer) {
                         data = item;
@@ -234,12 +279,12 @@ function aptCreateModuleService(builder) {
             if (proceed) {
                 var _builder = _.merge({_builder: builder}, {
                     data  : data,
-                    popup : popup,
+                    popup : editConf.popup,
                     type  : builder.domain,
-                    stay  : stay ? stay :false,
+                    stay  : editConf.stay ? editConf.stay : false,
                     suffix: _.has(builder, 'form.suffix') && builder.form.suffix
                         ? builder.form.suffix
-                        : 'form'
+                        : editConf.suffix
                 });
                 // restOp.edit({type: builder.domain, data: data, popup: popup});
                 restOp.edit(_builder);
