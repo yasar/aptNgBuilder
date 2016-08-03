@@ -231,7 +231,9 @@ function aptCreateModuleService(builder) {
                     data  : data,
                     popup : popup,
                     type  : builder.domain,
-                    suffix: builder.form.suffix
+                    suffix: _.has(builder, 'form.suffix') && builder.form.suffix
+                        ? builder.form.suffix
+                        : 'form'
                 });
                 // restOp.edit({type: builder.domain, data: data, popup: popup});
                 restOp.edit(_builder);
