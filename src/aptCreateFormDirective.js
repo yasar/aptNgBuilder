@@ -103,8 +103,8 @@ function aptCreateFormDirective(builder) {
          */
         if (!$templateCache.get(contentPath)) {
             var errorMessage = 'The form module for `'
-                               + builder.package + '.' + builder.domain
-                               + '` does not have [form.content].tpl.html. Should be in: ' + contentPath;
+                + builder.package + '.' + builder.domain
+                + '` does not have [form.content].tpl.html. Should be in: ' + contentPath;
             if (Templ.appConfig.isStrict) {
                 throw new Error(errorMessage);
             } else {
@@ -149,7 +149,7 @@ function aptCreateFormDirective(builder) {
 
                 if (!formTemplate) {
                     throw new Error('The form module does not have `' + defaultTemplateName + '`. Should be in: '
-                                    + formDefaultTemplatePath);
+                        + formDefaultTemplatePath);
                 }
 
             }
@@ -200,7 +200,7 @@ function aptCreateFormDirective(builder) {
             $scope        : $scope,
             readonlyFields: readonlyFields,
             mute          : vm.mute,
-            stay          : vm.stay,
+            stay          : vm.stay ? vm.stay : true,
             onDataLoad    : (_.isFunction(_.get(builder, 'form.onDataLoad')) ? builder.form.onDataLoad : vm.onDataLoad),
             hasParent     : vm.hasParent,
             /**
