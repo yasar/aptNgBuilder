@@ -209,9 +209,9 @@ function aptCreateSelectorDirective(builder) {
             /**
              * load repo
              */
-            // reload().then(function () {
-            //     initModelValue();
-            // });
+                // reload().then(function () {
+                //     initModelValue();
+                // });
             reload();
         }
 
@@ -402,6 +402,10 @@ function aptCreateSelectorDirective(builder) {
 
         function searchFn(keyword) {
             if (vm.searchable === false) {
+                return;
+            }
+
+            if (keyword.length == 0) {
                 return;
             }
 
