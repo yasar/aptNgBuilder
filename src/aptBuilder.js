@@ -225,17 +225,16 @@ aptBuilder.utils = {
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = moment(item[prop]).format('HH:mm:ss');
-                ;
+
             }
         });
     },
-    makeTimeForTimePicker: function (item, props) {
+    makeTime: function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = moment(item[prop], "HH:mm:ss").toDate();
-                ;
             }
         });
     },
