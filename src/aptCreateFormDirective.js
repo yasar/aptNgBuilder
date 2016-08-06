@@ -67,6 +67,7 @@ function aptCreateFormDirective(builder) {
             bindToController: true
         };
 
+
         if (_.has(builder, 'form.require')) {
             _.set(directive, 'require', _.get(builder, 'form.require'));
         }
