@@ -1,0 +1,47 @@
+/**
+ * Created by yasar on 12.05.2016.
+ */
+
+
+function aptCreateLayoutController(builder) {
+
+    if (builder.domain) {
+        builder.Domain = _.upperFirst(builder.domain);
+    }
+
+    angular.module(builder.getModuleName()).controller(builder.getControllerName('layout'), Controller);
+
+    Controller.$inject = ['$injector', '$scope'];
+    function Controller($injector, $scope) {
+
+        var aptTempl = $injector.get('aptTempl');
+        var service  = null;
+        if ($injector.has(builder.getServiceName('service'))) {
+            var service = $injector.get(builder.getServiceName('service'));
+        }
+
+        aptTempl.reset();
+        aptTempl.page.title                 = builder.Domain + ' Manager';
+        aptTempl.page.icon                  = builder.icon;
+        aptTempl.config.showSecondaryNavbar = true;
+        aptTempl.config.fillContent         = false;
+        aptTempl.config.transparentHeader   = false;
+        aptTempl.config.showHeader          = true;
+        aptTempl.config.showBreadcrumb      = true;
+        aptTempl.config.showFooter          = false;
+        aptTempl.config.showSidebarLeft     = true;
+        aptTempl.config.showSidebarRight    = false;
+
+        if (builder.layout && builder.layout.controller && _.isFunction(builder.layout.controller)) {
+            builder.layout.controller.call(this, $injector, $scope, builder);
+        }
+
+        if (service && service._destroy) {
+            $scope.$on('$destroy', function () {
+                service._destroy($scope);
+            });
+
+        }
+
+    }
+}
