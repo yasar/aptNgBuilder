@@ -405,7 +405,7 @@ function aptCreateSelectorDirective(builder) {
                 return;
             }
 
-            if (keyword.length == 0) {
+            if (!keyword) {
                 return;
             }
 
