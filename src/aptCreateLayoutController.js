@@ -20,7 +20,7 @@ function aptCreateLayoutController(builder) {
             var service = $injector.get(builder.getServiceName('service'));
         }
 
-        aptTempl.reset();
+        aptTempl.reset(true);
         aptTempl.page.title                 = builder.Domain + ' Manager';
         aptTempl.page.icon                  = builder.icon;
         aptTempl.config.showSecondaryNavbar = true;

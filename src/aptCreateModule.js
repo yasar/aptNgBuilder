@@ -81,7 +81,7 @@ function aptCreateModule(builder) {
             var defaultMenuItem   = {
                 text   : builder.title || builder.Domain,
                 icon   : builder.icon,
-                segment: 'main.' + builder.package + '.' + builder.domain,
+                segment: 'main.' + (builder.package ? builder.package + '.' : '') + builder.domain,
                 auth   : ['access_' + _.snakeCase(builder.domain) + '_menu']
             };
 
