@@ -239,7 +239,7 @@ aptBuilder.utils = {
         });
     },
     makeDateTime       : function (item, props) {
-        console.log('aptBuilder.utils.makeDateTime() should not be used!! Check the code');
+        // console.log('aptBuilder.utils.makeDateTime() should not be used!! Check the code');
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
