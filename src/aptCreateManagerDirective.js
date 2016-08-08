@@ -76,9 +76,18 @@ function aptCreateManagerDirective(builder) {
         var service  = $injector.get(builder.getServiceName('Service'));
         var aptUtils = $injector.get('aptUtils');
 
+        if (builder.manager && builder.manager.beforeDataLoad && angular.isFunction(builder.manager.beforeDataLoad)) {
+            builder.manager.beforeDataLoad.call(this, $injector, $scope, builder);
+        }
+
         if (_.isUndefined(vm.item) && _.isUndefined(vm.items) && !_.isUndefined(vm.itemId)) {
+            vm.item = {};
             service.get(vm.itemId).then(function (data) {
-                aptUtils.removeAndMerge(vm.item, data);
+                //aptUtils.removeAndMerge(vm.item, data);
+                _.merge(vm.item, data);
+                if (_.isFunction(_.get(builder, 'manager.onDataLoad'))) {
+                    builder.manager.onDataLoad();
+                }
             });
         }
 
