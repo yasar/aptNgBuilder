@@ -208,6 +208,16 @@ aptBuilder.utils = {
         });
     },
 
+    makeNativeDate  : function (item, props) {
+        if (item == null) return;
+        if (!_.isArray(props)) props = [props];
+        _.forEach(props, function (prop) {
+            if (item.hasOwnProperty(prop) && item[prop] !== null) {
+                item[prop] = moment(item[prop], "YYYY-MM-DD").toDate();
+            }
+        });
+    },
+
     formatDateTimeForDb: function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
