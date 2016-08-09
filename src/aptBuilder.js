@@ -213,7 +213,7 @@ aptBuilder.utils = {
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = moment(item[prop], "YYYY-MM-DD").toDate();
+                item[prop] = new Date(item[prop]);
             }
         });
     },
