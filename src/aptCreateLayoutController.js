@@ -23,8 +23,9 @@ function aptCreateLayoutController(builder) {
 
         aptTempl.reset(true);
         // aptTempl.page.title                 = builder.Domain + ' Manager';
-        aptTempl.page.title                 = gettextCatalog.getString(builder.Domain);
-        aptTempl.page.icon                  = builder.icon;
+        // aptTempl.page.title                 = gettextCatalog.getString(builder.Domain);
+        // aptTempl.page.icon                  = builder.icon;
+        aptTempl.resetWithBuilder(builder);
         aptTempl.config.showSecondaryNavbar = true;
         aptTempl.config.fillContent         = false;
         aptTempl.config.transparentHeader   = false;
