@@ -49,6 +49,7 @@ function aptCreateSelectorDirective(builder) {
                 identifier       : '@',
                 isMultiple       : '@?',
                 translate        : '=?',
+                translateContext : '@?',
                 searchable       : '=?',
                 /**
                  * can be used to assign `pre-scrollable` to the holder class
@@ -187,6 +188,16 @@ function aptCreateSelectorDirective(builder) {
              * @type {boolean}
              */
             vm.translate = (_.isUndefined(vm.translate) || vm.translate !== false) ? true : false;
+            // if (_.isUndefined(vm.translate)) {
+            //     vm.translate        = true;
+            //     vm.translateContext = null;
+            // } else if (!_.isUndefined(vm.translate) && vm.translate !== false && vm.translate !== true) {
+            //     /**
+            //      * todo: translateContext needs to be implemented in the templates!! maybe we should reconsider this if we really need it.
+            //      */
+            //     vm.translateContext = vm.translate;
+            //     vm.translate = true;
+            // }
 
             {
                 var defaultPlaceholder = '...';
@@ -194,7 +205,7 @@ function aptCreateSelectorDirective(builder) {
                 if (vm.placeholder != defaultPlaceholder && vm.translate) {
                     vm.placeholder = gettextCatalog.getString(vm.placeholder);
                 }
-                console.log('debug the code if the auto translation is working !!');
+                // console.log('debug the code if the auto translation is working !!');
             }
         }
 
@@ -209,9 +220,9 @@ function aptCreateSelectorDirective(builder) {
             /**
              * load repo
              */
-                // reload().then(function () {
-                //     initModelValue();
-                // });
+            // reload().then(function () {
+            //     initModelValue();
+            // });
             reload();
         }
 
