@@ -123,7 +123,7 @@ function aptCreateFormDirective(builder) {
              *
              * @type {string[]}
              */
-            templatePrefixes = ['', '-plain', '-wrapper', '-nested', '-undecorated'];
+            templatePrefixes = ['', '-plain', '-wrapper', '-nested', '-undecorated', '-inside-form'];
 
         ///
 
@@ -201,7 +201,7 @@ function aptCreateFormDirective(builder) {
             $scope        : $scope,
             readonlyFields: readonlyFields,
             mute          : vm.mute,
-            stay          : vm.stay ? vm.stay : true,
+            stay          : _.has(vm, 'stay') ? vm.stay : true,
             onDataLoad    : (_.isFunction(_.get(builder, 'form.onDataLoad')) ? builder.form.onDataLoad : vm.onDataLoad),
             hasParent     : vm.hasParent,
             /**
