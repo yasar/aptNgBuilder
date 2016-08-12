@@ -181,7 +181,8 @@ function aptCreateModuleService(builder) {
 
         function notify(event, data, stay) {
             //$timeout(function () {
-            NotifyingService.notify(builder.domain + ':' + event, data);
+            //NotifyingService.notify(builder.domain + ':' + event, data);
+            NotifyingService.notify(builder.domain + ':' + event, {stay: stay, data: data});
             NotifyingService.notify('record.' + event, {stay: stay});
             //});
         }
