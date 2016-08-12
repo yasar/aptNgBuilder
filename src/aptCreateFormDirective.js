@@ -98,7 +98,7 @@ function aptCreateFormDirective(builder) {
          *
          * This file is the base form content.
          * The content should not be wrapped with <form> tag.
-         * Other templates will have the required tag in which the content will be included.
+         * Other templates will have the form tag in which the content will be included.
          *
          * @type {string}
          */
