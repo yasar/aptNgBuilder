@@ -274,7 +274,13 @@ function aptCreateSelectorDirective(builder) {
                  */
                 if (vm.searchable !== false
                     && _.findIndex(vm.data, filterModel) == -1
-                    && _.findIndex(vm.data, filterObject) == -1) {
+                    && _.findIndex(vm.data, filterObject) == -1
+
+                    /**
+                     * if vm.keyword is set, it means we have already performed the search query
+                     * and we should have the result set from the search.
+                     */
+                    && !vm.keyword) {
 
                     var modelService = getModelService();
                     if (modelService.hasOwnProperty('search')) {
