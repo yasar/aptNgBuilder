@@ -1,0 +1,16 @@
+<form ng-submit="<<vm>>.form.submit()" role="form" name="{{<<vm>>.form.name}}">
+    <apt-panel class="no-margin" data-form="<<vm>>.form">
+        <apt-panel-title icon="<<icon>>" icon-ignore>
+            <span class="text-semibold"><<formTitle>></span>
+        </apt-panel-title>
+        <apt-panel-body>
+            <div ng-include="'<<contentPath>>'"></div>
+        </apt-panel-body>
+        <apt-panel-footer>
+            <apt-panel-footer-left>
+                <!--<i class="icon-info3" uib-tooltip="form.default.tpl"></i>-->
+            </apt-panel-footer-left>
+            <apt-panel-footer-right defaults></apt-panel-footer-right>
+        </apt-panel-footer>
+    </apt-panel>
+</form>
