@@ -80,7 +80,8 @@ function aptCreateManagerDirective(builder) {
             builder.manager.beforeDataLoad.call(this, $injector, $scope, builder);
         }
 
-        if (_.isUndefined(vm.item) && _.isUndefined(vm.items) && !_.isUndefined(vm.itemId)) {
+        // if (_.isUndefined(vm.item) && _.isUndefined(vm.items) && !_.isUndefined(vm.itemId)) {
+        if (!vm.item && !vm.items && vm.itemId) {
             vm.item = {};
             service.get(vm.itemId).then(function (data) {
                 //aptUtils.removeAndMerge(vm.item, data);
