@@ -172,6 +172,7 @@ function aptCreateSelectorDirective(builder) {
             vm.selectedItem    = selectedItemFn;
             vm.search          = searchFn;
             vm.unlock          = unlockFn;
+            vm.resetSelect     = resetSelectFn;
             vm.addNew          = addNewFn;
             vm.edit            = editFn;
             vm.reload          = reloadFn;
@@ -378,6 +379,10 @@ function aptCreateSelectorDirective(builder) {
 
         function unlockFn() {
             vm.locked = false;
+        }
+
+        function resetSelectFn() {
+            selectedItemFn(null);
         }
 
         function addNewFn() {
