@@ -125,11 +125,16 @@ function aptCreateModule(builder) {
             });
 
             function attachMenu(targetMenu, menuItem) {
+                if (!targetMenu || !menuItem) {
+                    return;
+                }
+
                 targetMenu.addChild(menuItem);
             }
 
             function getMenuItem(menu) {
-                return _.defaultsDeep((_.has(menu, 'menuItem') ? menu.menuItem : {}), defaultMenuItem);
+                // return _.defaultsDeep((_.has(menu, 'menuItem') ? menu.menuItem : {}), defaultMenuItem);
+                return _.defaultsDeep((_.has(menu, 'menuItem') ? menu.menuItem : menu), defaultMenuItem);
             }
         }
 
