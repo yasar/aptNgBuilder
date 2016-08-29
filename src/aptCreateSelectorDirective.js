@@ -32,6 +32,7 @@ function aptCreateSelectorDirective(builder) {
                 loadIf           : '=?',
                 selectItem       : '=?',
                 onChange         : '&?ngChange',
+                onClick          : '&?ngClick',
                 onLoad           : '&?',
                 readonly         : '@?',
                 viewType         : '@?',
@@ -130,6 +131,10 @@ function aptCreateSelectorDirective(builder) {
                     element.find('select').on('change', vm.onChange);
                 }
 
+                // if (angular.isFunction(vm.onClick)) {
+                //     element.find('select').on('click', vm.onClick);
+                // }
+
                 if (attrs.class) {
                     element.find('select, .list-group, .input-group').addClass(attrs.class);
                     element.removeClass(attrs.class);
@@ -170,6 +175,7 @@ function aptCreateSelectorDirective(builder) {
 
 
             vm.selectedItem    = selectedItemFn;
+            // vm.onClick         = onClickFn;
             vm.search          = searchFn;
             vm.unlock          = unlockFn;
             vm.resetSelect     = resetSelectFn;
@@ -374,8 +380,15 @@ function aptCreateSelectorDirective(builder) {
                     });
                 }
             }
-
         }
+
+        // function onClickFn(item) {
+        //     if (angular.isFunction(vm.onClick)) {
+        //         $timeout(function () {
+        //             vm.onClick({data: item});
+        //         });
+        //     }
+        // }
 
         function unlockFn() {
             vm.locked = false;
