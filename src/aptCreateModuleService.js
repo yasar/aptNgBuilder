@@ -512,7 +512,7 @@ function aptCreateModuleService(builder) {
                 //angular.merge(repo, data);
                 notify('loaded');
 
-                if(_.isFunction(options.onLoaded)){
+                if(options && _.isFunction(options.onLoaded)){
                     options.onLoaded(repo);
                 }
 
