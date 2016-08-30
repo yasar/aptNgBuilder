@@ -104,8 +104,8 @@ function aptCreateFormDirective(builder) {
          */
         if (!$templateCache.get(contentPath)) {
             var errorMessage = 'The form module for `'
-                + builder.package + '.' + builder.domain
-                + '` does not have [form.content].tpl.html. Should be in: ' + contentPath;
+                               + builder.package + '.' + builder.domain
+                               + '` does not have [form.content].tpl.html. Should be in: ' + contentPath;
             if (Templ.appConfig.isStrict) {
                 throw new Error(errorMessage);
             } else {
@@ -150,7 +150,7 @@ function aptCreateFormDirective(builder) {
 
                 if (!formTemplate) {
                     throw new Error('The form module does not have `' + defaultTemplateName + '`. Should be in: '
-                        + formDefaultTemplatePath);
+                                    + formDefaultTemplatePath);
                 }
 
             }
@@ -210,6 +210,14 @@ function aptCreateFormDirective(builder) {
             onBeforeSubmit: (_.isFunction(_.get(builder, 'form.onBeforeSubmit')) ? builder.form.onBeforeSubmit : vm.onBeforeSubmit),
             name          : vm.name
         });
+
+        if (builder.form && builder.form.defaults) {
+            var defaults = angular.isFunction(builder.form.defaults)
+                ? builder.form.defaults.call(vm, $injector, $scope, builder)
+                : builder.form.defaults;
+
+            _.defaults(vm.form.data, defaults);
+        }
 
         if (builder.form && builder.form.controller && angular.isFunction(builder.form.controller)) {
             builder.form.controller.call(vm, $injector, $scope, builder);

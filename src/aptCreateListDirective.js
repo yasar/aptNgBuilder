@@ -68,8 +68,8 @@ function aptCreateListDirective(builder) {
             if (_.isUndefined(tAttrs.showLoadingIndicator) || tAttrs.showLoadingIndicator != 'false') {
                 $(tElement)
                     .append('<div bs-loading-overlay ' +
-                        'bs-loading-overlay-template-url="misc/loading-overlay-template.tpl.html"' +
-                        'bs-loading-overlay-reference-id="ref_' + aptCreateListDirective.ctr + '"></div>')
+                            'bs-loading-overlay-template-url="misc/loading-overlay-template.tpl.html"' +
+                            'bs-loading-overlay-reference-id="ref_' + aptCreateListDirective.ctr + '"></div>')
 
                     // parent needs to have position:relative, overlay will cover the page otherwise.
                     .css('position', 'relative');
