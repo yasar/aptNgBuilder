@@ -56,7 +56,8 @@ function aptCreateSelectorDirective(builder) {
                  * can be used to assign `pre-scrollable` to the holder class
                  * when view type is `list`. so that search box will stay above the scrolling table.
                  */
-                listClass        : '@?'
+                listClass        : '@?',
+                datasource       : '=?'
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
@@ -169,7 +170,7 @@ function aptCreateSelectorDirective(builder) {
             var $timeout                = $injector.get('$timeout');
             var vm                      = this;
             var _selectedItem           = null;
-            var dataSource              = null;
+            // var datasource              = null;
             var filterObject            = {};
             var isModelValueInitialized = false;
 
@@ -195,24 +196,11 @@ function aptCreateSelectorDirective(builder) {
              * @type {boolean}
              */
             vm.translate = (_.isUndefined(vm.translate) || vm.translate !== false) ? true : false;
-            // if (_.isUndefined(vm.translate)) {
-            //     vm.translate        = true;
-            //     vm.translateContext = null;
-            // } else if (!_.isUndefined(vm.translate) && vm.translate !== false && vm.translate !== true) {
-            //     /**
-            //      * todo: translateContext needs to be implemented in the templates!! maybe we should reconsider this if we really need it.
-            //      */
-            //     vm.translateContext = vm.translate;
-            //     vm.translate = true;
-            // }
 
-            {
-                var defaultPlaceholder = '...';
-                vm.placeholder         = vm.placeholder || defaultPlaceholder;
-                if (vm.placeholder != defaultPlaceholder && vm.translate) {
-                    vm.placeholder = gettextCatalog.getString(vm.placeholder);
-                }
-                // console.log('debug the code if the auto translation is working !!');
+            var defaultPlaceholder = '...';
+            vm.placeholder         = vm.placeholder || defaultPlaceholder;
+            if (vm.placeholder != defaultPlaceholder && vm.translate) {
+                vm.placeholder = gettextCatalog.getString(vm.placeholder);
             }
         }
 
@@ -227,9 +215,6 @@ function aptCreateSelectorDirective(builder) {
             /**
              * load repo
              */
-            // reload().then(function () {
-            //     initModelValue();
-            // });
             reload();
         }
 
@@ -279,7 +264,8 @@ function aptCreateSelectorDirective(builder) {
                  * or if we have data that satisfies filter criterias.
                  * if not, we have to request from server.
                  */
-                if (vm.searchable !== false
+                if (!vm.datasource
+                    && vm.searchable !== false
                     && _.findIndex(vm.data, filterModel) == -1
                     && _.findIndex(vm.data, filterObject) == -1
 
@@ -459,8 +445,12 @@ function aptCreateSelectorDirective(builder) {
         }
 
         function reload() {
-            // var deferred = $q.defer();
-            // $timeout(function () {
+            if (vm.datasource) {
+                if (vm.datasource != vm.data) {
+                    vm.data = vm.datasource;
+                }
+                return;
+            }
 
             /**
              * if the condition required to show data is not satisfied
@@ -510,19 +500,8 @@ function aptCreateSelectorDirective(builder) {
                             }
                         }
                         NotifyingService.notify(builder.domain + ':loaded', data);
-                        //
-                        // ///
-                        //
-                        // vm.isLoading = false;
-                        // deferred.resolve(data);
-                        //
-                        // if (angular.isFunction(vm.onLoad)) {
-                        //     vm.onLoad({data: data});
-                        // }
                     }
                 );
-            // });
-            // return deferred.promise;
         }
 
         function init() {
