@@ -66,6 +66,14 @@ function aptCreateModuleService(builder) {
             serviceObj.updateStatus = updateStatus;
         }
 
+        if (_.get(builder, 'disable.addNew') === true) {
+            delete serviceObj.addNew;
+        }
+
+        if (_.get(builder, 'disable.edit') === true) {
+            delete serviceObj.edit;
+        }
+
         this.serviceObj = serviceObj;
 
         if (builder.service.init) {
@@ -512,7 +520,7 @@ function aptCreateModuleService(builder) {
                 //angular.merge(repo, data);
                 notify('loaded');
 
-                if(options && _.isFunction(options.onLoaded)){
+                if (options && _.isFunction(options.onLoaded)) {
                     options.onLoaded(repo);
                 }
 

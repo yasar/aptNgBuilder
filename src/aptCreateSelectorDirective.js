@@ -202,6 +202,15 @@ function aptCreateSelectorDirective(builder) {
             if (vm.placeholder != defaultPlaceholder && vm.translate) {
                 vm.placeholder = gettextCatalog.getString(vm.placeholder);
             }
+
+            if (_.get(builder, 'disable.addNew') === true) {
+                delete vm.addNew;
+            }
+
+            if (_.get(builder, 'disable.edit') === true) {
+                delete vm.edit;
+            }
+
         }
 
         init();
