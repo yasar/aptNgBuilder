@@ -25,11 +25,11 @@ function aptCreateSelectorDirective(builder) {
             scope           : {},
             bindToController: {
                 model            : '=?ngModel',
-                filterObject     : '=?',
+                filterObject     : '<?',
                 filterGroup      : '@?',
                 filterClass      : '@?',
-                filterRequired   : '=?',
-                loadIf           : '=?',
+                filterRequired   : '<?',
+                loadIf           : '<?',
                 selectItem       : '=?',
                 onChange         : '&?ngChange',
                 onClick          : '&?ngClick',
@@ -40,7 +40,7 @@ function aptCreateSelectorDirective(builder) {
                 placeholder      : '@?',
                 limit            : '@?',
                 locked           : '@?',
-                showMenu         : '=?',
+                showMenu         : '<?',
                 subRoute         : '@?',
                 formHandlerSuffix: '@',
                 /**
@@ -49,15 +49,16 @@ function aptCreateSelectorDirective(builder) {
                  */
                 identifier       : '@',
                 isMultiple       : '@?',
-                translate        : '=?',
+                translate        : '<?',
                 translateContext : '@?',
-                searchable       : '=?',
+                searchable       : '<?',
                 /**
                  * can be used to assign `pre-scrollable` to the holder class
                  * when view type is `list`. so that search box will stay above the scrolling table.
                  */
                 listClass        : '@?',
-                datasource       : '=?'
+                datasource       : '=?',
+                subscribeAdd     : '<?'
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
@@ -174,7 +175,7 @@ function aptCreateSelectorDirective(builder) {
             var filterObject            = {};
             var isModelValueInitialized = false;
 
-
+            vm.searchable      = _.isUndefined(vm.searchable) ? true : vm.searchable;
             vm.selectedItem    = selectedItemFn;
             // vm.onClick         = onClickFn;
             vm.search          = searchFn;
@@ -257,6 +258,12 @@ function aptCreateSelectorDirective(builder) {
 
             }, true
         );
+
+        if (vm.subscribeAdd) {
+            NotifyingService.subscribe($scope, builder.domain + ':added', function (event, data) {
+                vm.data.push(data.data);
+            });
+        }
 
         function getFilterObject() {
             return filterObject;

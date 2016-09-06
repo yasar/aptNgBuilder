@@ -119,7 +119,8 @@ function aptCreateListDirective(builder) {
             builder.list.controller.call(this, $injector, $scope, builder);
         }
 
-        if (_.isUndefined(vm.data)) {
+        // if (_.isUndefined(vm.data)) {
+        if (_.isUndefined(vm.data) || _.isNUll(vm.data)) {
             vm.data = service.getRepo();
         }
 
@@ -204,9 +205,9 @@ function aptCreateListDirective(builder) {
         function getRowMenu() {
             var rowMenu;
             if (builder.list && builder.list.rowMenu && angular.isFunction(builder.list.rowMenu)) {
-                rowMenu = builder.list.rowMenu.call(this, $injector, vm,$scope);
+                rowMenu = builder.list.rowMenu.call(this, $injector, vm, $scope);
             } else if (angular.isFunction(builder.rowMenu)) {
-                rowMenu = builder.rowMenu.call(this, $injector, vm,$scope);
+                rowMenu = builder.rowMenu.call(this, $injector, vm, $scope);
             } else if (angular.isObject(builder.rowMenu)) {
                 rowMenu = builder.rowMenu;
             } else {
