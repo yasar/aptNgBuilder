@@ -58,7 +58,12 @@ function aptCreateSelectorDirective(builder) {
                  */
                 listClass        : '@?',
                 datasource       : '=?',
-                subscribeAdd     : '<?'
+
+                /**
+                 * when subscribed to `add`, the selector will populate the newly added records
+                 * this will listen to event fired at moduleService
+                 */
+                subscribeAdd     : '<?' // true|false, default: false
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
