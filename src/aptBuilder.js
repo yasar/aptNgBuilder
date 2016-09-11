@@ -89,9 +89,9 @@ aptBuilder.prototype.getPath = function (what) {
 };
 
 aptBuilder.prototype.getTemplateContentFileName = function (what, Templ) {
-    var appTemplateKey   = 'appConfig.modules.' + this.domain + '.' + this.getSuffix(what) + '.template',
-        appTemplate      = _.has(Templ, appTemplateKey) ? _.get(Templ, appTemplateKey) : '',
-        templateFileName = '[' + this.getSuffix(what) + '.content]' + (appTemplate ? '.' + appTemplate : '') + '.tpl.html';
+    var appTemplateKey   = 'appConfig.modules.' + this.domain + '.' + this.getSuffix(what) + '.template';
+    var appTemplate      = _.has(Templ, appTemplateKey) ? _.get(Templ, appTemplateKey) : '';
+    var templateFileName = '[' + this.getSuffix(what) + '.content]' + (appTemplate ? '.' + appTemplate : '') + '.tpl.html';
 
     return templateFileName;
 };
@@ -208,7 +208,7 @@ aptBuilder.utils = {
         });
     },
 
-    makeNativeDate  : function (item, props) {
+    makeNativeDate: function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -239,7 +239,7 @@ aptBuilder.utils = {
             }
         });
     },
-    makeTime: function (item, props) {
+    makeTime       : function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -248,7 +248,7 @@ aptBuilder.utils = {
             }
         });
     },
-    makeDateTime       : function (item, props) {
+    makeDateTime   : function (item, props) {
         // console.log('aptBuilder.utils.makeDateTime() should not be used!! Check the code');
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
@@ -259,7 +259,7 @@ aptBuilder.utils = {
             }
         });
     },
-    makeString         : function (item, props) {
+    makeString     : function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -276,7 +276,7 @@ aptBuilder.utils = {
             }
         });
     },
-    makeObject         : function (item, props) {
+    makeObject     : function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {

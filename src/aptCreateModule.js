@@ -64,7 +64,7 @@ function aptCreateModule(builder) {
             if (authorizeFor !== false) {
                 var aptAuthorizationService = $injector.get('aptAuthorizationService');
                 if (authorizeFor === true) {
-                    authorizeFor = 'access_' + widget.target + '_menu';
+                    authorizeFor = 'access_' + builder.domain + '_menu';
                 }
 
                 if (!aptAuthorizationService.isAuthorized(authorizeFor)) {

@@ -82,10 +82,14 @@ function aptCreateListDirective(builder) {
         }
 
         function templateUrlFn(elem, attrs) {
+            var aptTempl       = $injector.get('aptTempl');
+            var appTemplateKey = 'appConfig.modules.' + builder.domain + '.' + builder.getSuffix('list') + '.template';
+            var name           = builder.suffix.list + (_.has(aptTempl, appTemplateKey) ? '.' + _.get(aptTempl, appTemplateKey) : '');
+
             if (attrs.viewType) {
-                return path + '/' + builder.suffix.list + '-' + attrs.viewType + '.tpl.html';
+                return path + '/' + name + '-' + attrs.viewType + '.tpl.html';
             } else {
-                return path + '/' + builder.suffix.list + '.tpl.html';
+                return path + '/' + name + '.tpl.html';
             }
         }
 
