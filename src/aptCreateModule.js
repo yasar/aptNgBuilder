@@ -50,13 +50,38 @@ function aptCreateModule(builder) {
         widgetLoader.$inject = ['$injector'];
         function widgetLoader($injector) {
             _.forIn(_.get(builder, 'widgets'), function (widget) {
-                var targetBuilder        = _.get(window, widget.target + 'Builder');
-                var targetBuilderService = $injector.get(targetBuilder.getServiceName('service'));
 
-                if (_.has(targetBuilderService, 'registerWidgetCreator')) {
-                    targetBuilderService.registerWidgetCreator(widget.creator);
+                if (!checkAuthorization($injector, widget)) {
+                    return;
                 }
+
+                registerWidgetCreator($injector, widget);
             });
+        }
+
+        function checkAuthorization($injector, widget) {
+            var authorizeFor = _.get(widget, 'authorize', false);
+            if (authorizeFor !== false) {
+                var aptAuthorizationService = $injector.get('aptAuthorizationService');
+                if (authorizeFor === true) {
+                    authorizeFor = 'access_' + widget.target + '_menu';
+                }
+
+                if (!aptAuthorizationService.isAuthorized(authorizeFor)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function registerWidgetCreator($injector, widget) {
+            var targetBuilder        = _.get(window, widget.target + 'Builder');
+            var targetBuilderService = $injector.get(targetBuilder.getServiceName('service'));
+
+            if (_.has(targetBuilderService, 'registerWidgetCreator')) {
+                targetBuilderService.registerWidgetCreator(widget.creator);
+            }
         }
     }
 
