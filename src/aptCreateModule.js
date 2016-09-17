@@ -67,6 +67,10 @@ function aptCreateModule(builder) {
                     authorizeFor = 'access_' + builder.domain + '_menu';
                 }
 
+                if (!_.isArray(authorizeFor)) {
+                    authorizeFor = [authorizeFor];
+                }
+
                 if (!aptAuthorizationService.isAuthorized(authorizeFor)) {
                     return false;
                 }

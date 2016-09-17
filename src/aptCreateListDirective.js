@@ -75,9 +75,16 @@ function aptCreateListDirective(builder) {
                     .css('position', 'relative');
             }
 
+            var datatable = tElement.find('[apt-datatable], apt-datatable');
+            datatable.attr('data-authorize', builder.domain);
             if (tAttrs.tableOptions) {
-                var datatable = tElement.find('[apt-datatable], apt-datatable');
                 datatable.attr('data-options', tAttrs.tableOptions);
+            }
+
+            if (_.isFunction(_.get(builder, 'list.link'))) {
+                return function (scope, elem, attrs, ctrls) {
+                    builder.list.link.call(this, $injector, builder, scope, elem, attrs, ctrls);
+                };
             }
         }
 
@@ -203,7 +210,14 @@ function aptCreateListDirective(builder) {
         }
 
         function reloadFn() {
-            load(false);
+            var proceed = true;
+            if (builder.list && builder.list.onBeforeReload && angular.isFunction(builder.list.onBeforeReload)) {
+                proceed = builder.list.onBeforeReload.call(this, $injector, vm, $scope);
+            }
+
+            if (proceed) {
+                load(false);
+            }
         }
 
         function getRowMenu() {
@@ -243,6 +257,7 @@ function aptCreateListDirective(builder) {
             var menuItemEdit = aptMenu.Item({
                 text : 'Edit',
                 icon : 'icon-pencil',
+                auth : ['update_' + builder.domain + '_module'],
                 click: function (item) {
                     vm.edit(item);
                 }
@@ -252,6 +267,7 @@ function aptCreateListDirective(builder) {
                 text : 'Delete',
                 icon : 'icon-close2',
                 class: 'btn-danger',
+                auth : ['delete_' + builder.domain + '_module'],
                 click: function (item) {
                     vm.delete(item);
                 }
