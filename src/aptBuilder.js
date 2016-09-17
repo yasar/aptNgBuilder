@@ -110,6 +110,48 @@ aptBuilder.prototype.getSuffix           = function (type) {
     return _.has(this.suffix, type) ? _.get(this.suffix, type) : type;
 };
 
+aptBuilder.prototype.permission = function (type, right) {
+    return type + '_' + this.domain + '_' + right;
+};
+
+
+/**
+ * part could be segment part name, or an index
+ *
+ * ex:
+ * var builder = mastBuilder;
+ * var x = builder.segment('list);
+ * >> x = 'main.app002.mast.list';
+ *
+ * var x= builder.segment(1);
+ * >> x = 'main';
+ *
+ * var x= builder.segment(3);
+ * >> x = 'mast';
+ *
+ */
+aptBuilder.prototype.segment = function (part) {
+    var arr = ['main', this.package, _.snakeCase(this.domain)];
+    if (part) {
+        if (_.isNumber(part)) {
+            return arr[part - 1];
+        }
+        arr.push(part);
+    }
+    return arr.join('.');
+};
+
+aptBuilder.prototype.url = function (part) {
+    var arr = [_.snakeCase(this.domain)];
+    if (part) {
+        if (_.isNumber(part)) {
+            return arr[part + 1];
+        }
+        arr.push(part);
+    }
+    return '/' + arr.join('/');
+};
+
 aptBuilder.prototype.getLayoutTemplate = function () {
     if (this.layout.template) {
         return this.layout.template;
