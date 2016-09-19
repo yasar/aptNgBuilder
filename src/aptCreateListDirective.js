@@ -18,6 +18,10 @@ function aptCreateListDirective(builder) {
 
     fn.$inject = ['$injector'];
     function fn($injector) {
+        if (!builder.isAuthorized($injector, 'list')) {
+            return aptBuilder.directiveObject.notAuthorized;
+        }
+
         return new aptListDirective(builder, $injector);
     }
 
@@ -131,7 +135,7 @@ function aptCreateListDirective(builder) {
         }
 
         // if (_.isUndefined(vm.data)) {
-        if (_.isUndefined(vm.data) || _.isNUll(vm.data)) {
+        if (_.isUndefined(vm.data) || _.isNull(vm.data)) {
             vm.data = service.getRepo();
         }
 
