@@ -17,6 +17,7 @@ function aptBuilder(conf) {
     this.onRun              = null;
     this.route              = null;
     this.enableStatusUpdate = false;
+    this.authorize          = false;
     this.create             = {
         listDirective    : true,
         formDirective    : true,
@@ -42,8 +43,9 @@ function aptBuilder(conf) {
     };
 
     this.layout = {
-        template  : null,
-        controller: null //for callback only
+        templConfig: {},
+        template   : null,
+        controller : null //for callback only
     };
 
     this.dependencies = ['app.common'];
@@ -131,15 +133,24 @@ aptBuilder.prototype.permission = function (type, right) {
  *
  */
 aptBuilder.prototype.segment = function (part) {
-    var arr = ['main', this.package, _.snakeCase(this.domain)];
-    if (part) {
-        if (_.isNumber(part)) {
-            return arr[part - 1];
-        }
-        arr.push(part);
+    if (_.isUndefined(this.segments)) {
+        this.segments = ['main', this.package, _.snakeCase(this.domain)];
     }
-    return arr.join('.');
+
+    if (_.isNumber(part)) {
+        return this.segments[part - 1];
+    }
+
+    return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
 };
+// aptBuilder.prototype.segment = function (part) {
+//     var arr = ['main', this.package, _.snakeCase(this.domain), _.trim(part, '.')];
+//     if (_.isNumber(part)) {
+//         console.log('aptBuilder.segment is deprecated. use manual segmentation instead');
+//         return;
+//     }
+//     return this.segments.join('.');
+// };
 
 aptBuilder.prototype.url = function (part) {
     var arr = [_.snakeCase(this.domain)];
@@ -160,6 +171,49 @@ aptBuilder.prototype.getLayoutTemplate = function () {
     // view-segment is 3 when the route is like: main.<package>.<module>
     return '<div app-view-segment="3"></div>';
 };
+
+aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
+    var result = _.get(this, checkFor + '.isAuthorized');
+    if (!_.isUndefined(result)) {
+        return result;
+    }
+
+    ///
+
+    var authorizeFor = _.get(this, 'authorize', false);
+    if (authorizeFor !== false) {
+        var aptAuthorizationService = $injector.get('aptAuthorizationService');
+        if (authorizeFor === true) {
+            var right = null;
+            var type  = 'module';
+            switch (checkFor) {
+                case 'list':
+                    right = 'read';
+                    break;
+                case 'form':
+                    right = 'update';
+                    break;
+            }
+            authorizeFor = [right, this.domain, type].join('_');
+        }
+
+        if (!_.isArray(authorizeFor)) {
+            authorizeFor = [authorizeFor];
+        }
+
+        result = aptAuthorizationService.isAuthorized(authorizeFor);
+    }
+
+    if (_.isUndefined(result)) {
+        result = true;
+    }
+
+    if (this[checkFor]) {
+        this[checkFor].isAuthorized = result;
+    }
+
+    return result;
+}
 
 aptBuilder.prototype.generate = function (timeout) {
 
@@ -332,4 +386,11 @@ aptBuilder.utils = {
     }
 };
 
-aptBuilder.prototype.utils = aptBuilder.utils;
+aptBuilder.directiveObject = {
+    notAuthorized: {
+        template: '<apt-inline-help translate>You are not authorized to edit this form. Please consult your system administrator.</apt-inline-help>'
+    }
+};
+
+aptBuilder.prototype.utils           = aptBuilder.utils;
+aptBuilder.prototype.directiveObject = aptBuilder.directiveObject;
