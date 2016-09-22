@@ -139,6 +139,11 @@ function aptCreateModuleService(builder) {
 
                 vm.setStatus = function (status) {
                     vm.form.data.status_id = status.type_id;
+
+                    var $formController = $('[name=' + vm.form.name + ']').data('$formController');
+                    if ($formController && $formController.$setDirty) {
+                        $formController.$setDirty();
+                    }
                 };
 
                 NotifyingService.subscribe($newScope, builder.domain + '.formCanceled', function () {
@@ -147,7 +152,7 @@ function aptCreateModuleService(builder) {
             }
 
             function getTemplate() {
-                return '<form ng-submit="vmStatusForm.form.submit()" role="form">' +
+                return '<form ng-submit="vmStatusForm.form.submit()" name="{{vmStatusForm.form.name}}" role="form" novalidate>' +
                     ' <apt-panel class="no-margin" form="vmStatusForm.form">' +
                     ' <apt-panel-title>' +
                     ' <i class="' + builder.icon + ' position-left"></i>' +
@@ -169,9 +174,11 @@ function aptCreateModuleService(builder) {
                     ' <i data-ng-class="{true:\'icon-play4\', false: \'icon-pause2\'}[vmStatusForm.form.data.status_id == status.type_id]"></i>' +
                     ' <span>{{status.name|translate}}</span>' +
                     ' </button>' +
+                    ' <input type="hidden" ng-model="vmStatusForm.form.data.status_id" type="hidden" />' +
                     ' </div>' +
                     ' </apt-panel-body>' +
                     ' <apt-panel-footer ng-show="vmStatusForm.isStatusUpdatable==true">' +
+                    ' <apt-panel-footer-left></apt-panel-footer-left>' +
                     ' <apt-panel-footer-right defaults></apt-panel-footer-right>' +
                     ' </apt-panel-footer>' +
                     ' </apt-panel>' +
