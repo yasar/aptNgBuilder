@@ -27,7 +27,7 @@ function aptCreateModule(builder) {
     processWidgets();
 
     processMenu(app);
-    // processRoute(app);
+    processRoute(app);
 
 
     function checkDependency() {
@@ -64,7 +64,8 @@ function aptCreateModule(builder) {
             if (authorizeFor !== false) {
                 var aptAuthorizationService = $injector.get('aptAuthorizationService');
                 if (authorizeFor === true) {
-                    authorizeFor = 'access_' + builder.domain + '_menu';
+                    // authorizeFor = 'access_' + builder.domain + '_menu';
+                    authorizeFor = builder.permission('access', 'menu');
                 }
 
                 if (!_.isArray(authorizeFor)) {
@@ -111,7 +112,8 @@ function aptCreateModule(builder) {
                 text   : builder.title || builder.Domain,
                 icon   : builder.icon,
                 segment: 'main.' + (builder.package ? builder.package + '.' : '') + builder.domain,
-                auth   : ['access_' + _.snakeCase(builder.domain) + '_menu']
+                // auth   : ['access_' + _.snakeCase(builder.domain) + '_menu']
+                auth   : [builder.permission('access', 'menu')]
             };
 
             ///
@@ -170,7 +172,7 @@ function aptCreateModule(builder) {
     }
 
     function processRoute(app) {
-        if (!_.has(builder, 'route') || !builder.route) {
+        if (!_.has(builder, 'create.routeConfig') || !builder.create.routeConfig) {
             return;
         }
 
@@ -178,24 +180,65 @@ function aptCreateModule(builder) {
 
         routeLoader.$inject = ['$injector'];
         function routeLoader($injector) {
-            var $routeSegmentProvider = $injector.get('$routeSegmentProvider'),
-                enums                 = $injector.get('aptAuthEnumServiceProvider')
-                ;
+            var $routeSegmentProvider = $injector.get('$routeSegmentProvider');
 
-            if (builder.menu === true) {
-                return applyRoutes({});
+            ///
+
+            var layoutConfig = {template: builder.getLayoutTemplate()};
+            if (builder.create.layoutController) {
+                layoutConfig.controller = builder.getControllerName('layout');
             }
 
+            ///
 
-            function applyRoutes(_routes) {
-                var routes = _.defaultsDeep(getDefaultRoutes(), _routes);
-                _.forEach(routes, function (route) {
-
-                });
+            var listConfig = {
+                default : true
+            };
+            if(builder.create.managerDirective){
+                listConfig = _.defaults({
+                    template: '<' + _.kebabCase(builder.getDirectiveName('manager')) + ' />'
+                }, listConfig);
+                var listParam  = 'routeConfig.manager';
+                if (_.has(builder, listParam)) {
+                    listConfig = _.defaults(_.get(builder, listParam), listConfig);
+                }
+            } else {
+                listConfig = _.defaults({
+                    template: '<apt-panel><' + _.kebabCase(builder.getDirectiveName('list')) + ' /></apt-panel>'
+                }, listConfig);
+                var listParam  = 'routeConfig.list';
+                if (_.has(builder, listParam)) {
+                    listConfig = _.defaults(_.get(builder, listParam), listConfig);
+                }
             }
 
-            function getDefaultRoutes() {
-            }
+            ///
+
+            $routeSegmentProvider
+                .when(builder.url(), builder.segment(), {
+                    label: builder.title,
+                })
+                .when(builder.url('list'), builder.segment('list'), {
+                    access: {
+                        permission: [builder.permission('read', 'module')]
+                    },
+                    label : 'List',
+                    parent: '/'
+                })
+
+                // start with: main
+                .within(builder.segment(1))
+
+                // package: app999
+                .within(builder.segment(2))
+
+                // module: staff
+                .segment(builder.segment(3), layoutConfig)
+
+                // section: staff.list
+                .within()
+
+                .segment('list', listConfig);
         }
     }
 }
