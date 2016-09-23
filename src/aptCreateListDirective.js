@@ -261,7 +261,7 @@ function aptCreateListDirective(builder) {
             var menuItemEdit = aptMenu.Item({
                 text : 'Edit',
                 icon : 'icon-pencil',
-                auth : ['update_' + builder.domain + '_module'],
+                auth : [builder.permission('update', 'module')],
                 click: function (item) {
                     vm.edit(item);
                 }
@@ -271,7 +271,7 @@ function aptCreateListDirective(builder) {
                 text : 'Delete',
                 icon : 'icon-close2',
                 class: 'btn-danger',
-                auth : ['delete_' + builder.domain + '_module'],
+                auth : [builder.permission('delete', 'module')],
                 click: function (item) {
                     vm.delete(item);
                 }

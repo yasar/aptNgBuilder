@@ -44,7 +44,7 @@ function aptCreateModelService(builder) {
 
                         if (angular.isArray(builder.model.methods.collection)
                             && builder.model.methods.collection.length > 0) {
-                            RestangularConfigurer.addElementTransformer(builder.getRoute(), true /* collection */,
+                            RestangularConfigurer.addElementTransformer(builder.getRestRoute(), true /* collection */,
                                 function (restObject) {
 
                                     if (!angular.isObject(restObject)) {
@@ -61,7 +61,7 @@ function aptCreateModelService(builder) {
 
                         if (angular.isArray(builder.model.methods.element)
                             && builder.model.methods.element.length > 0) {
-                            RestangularConfigurer.addElementTransformer(builder.getRoute(), false /* element */,
+                            RestangularConfigurer.addElementTransformer(builder.getRestRoute(), false /* element */,
                                 function (restObject) {
 
                                     if (!angular.isObject(restObject)) {
@@ -77,7 +77,7 @@ function aptCreateModelService(builder) {
                         }
 
                         if (angular.isFunction(builder.model.transformer)) {
-                            RestangularConfigurer.addElementTransformer(builder.getRoute(),
+                            RestangularConfigurer.addElementTransformer(builder.getRestRoute(),
                                 function (restObject) {
 
                                     builder.model.transformer.call(this, restObject, $injector);
@@ -86,8 +86,8 @@ function aptCreateModelService(builder) {
                                 });
                         }
                     })
-                    .service(builder.getRoute());
-            srv._route      = builder.getRoute();
+                    .service(builder.getRestRoute());
+            srv._route      = builder.getRestRoute();
             this.srv        = srv;
         }
         return this.srv;
@@ -105,7 +105,7 @@ function aptCreateModelService(builder) {
 
             if (builder.model.responseInterceptors) {
                 RestangularProvider.addResponseInterceptor(function (data, operation, what, url, response, deferred) {
-                    var routeUrl = RestangularProvider.configuration.baseUrl + '/' + builder.getRoute();
+                    var routeUrl = RestangularProvider.configuration.baseUrl + '/' + builder.getRestRoute();
                     // if (data && url.indexOf(routeUrl) == 0) {
                     // if (data && routeUrl == url) {
                     if (data && (routeUrl == url || url.indexOf(routeUrl + '/') == 0)) {
@@ -117,7 +117,7 @@ function aptCreateModelService(builder) {
             }
             if (builder.model.requestInterceptors) {
                 RestangularProvider.addRequestInterceptor(function (data, operation, what, url, response, deferred) {
-                    var routeUrl = RestangularProvider.configuration.baseUrl + '/' + builder.getRoute();
+                    var routeUrl = RestangularProvider.configuration.baseUrl + '/' + builder.getRestRoute();
                     // if (data && url.indexOf(routeUrl) == 0) {
                     // if (data && routeUrl == url) {
                     if (data && (routeUrl == url || url.indexOf(routeUrl + '/') == 0)) {
