@@ -12,12 +12,15 @@ function aptCreateModule(builder) {
 
     var app = angular
         .module(builder.getModuleName(), builder.dependencies)
-        .constant('buildConf', builder)
+        /**
+         * this was defined so, but seems like it never got a proper usage.
+         * so commenting it out now.
+         */
+        // .constant('buildConf', builder)
         .run(['$rootScope', '$injector', function ($rootScope, $injector) {
             if (_.get(builder, 'public')) {
                 _.set($rootScope, 'apt.modules.' + builder.package + '.' + builder.domain, builder);
             }
-            // $rootScope.apt.modules[builder.getModuleName() + 'Builder'] = builder;
 
             if (_.isFunction(builder.onRun)) {
                 builder.onRun($injector);
@@ -25,7 +28,6 @@ function aptCreateModule(builder) {
         }]);
 
     processWidgets();
-
     processMenu(app);
     processRoute(app);
 

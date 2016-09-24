@@ -1,0 +1,7 @@
+<div class="form-group">
+	<select data-ng-model="<<vm>>.selectedItem"
+	        data-ng-model-options="{getterSetter: true}"
+	        data-ng-options="item as (<<vm>>.translate ? (item._selectorTitle|translate) : item._selectorTitle) for item in <<vm>>.data"
+	        class="form-control"></select>
+	<span class="form-control-feedback" ng-show="<<vm>>.isLoading"><i class="spinner icon-spinner10"></i></span>
+</div>

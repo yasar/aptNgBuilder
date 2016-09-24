@@ -388,10 +388,10 @@ function aptCreateModuleService(builder) {
             _builder = _.merge({
                 _builder   : builder,
                 initialData: null,
-                add_before : true,
+                add_before : builder.form.enableAddBefore,
                 popup      : true,
                 stay       : true,
-                suffix     : 'form',
+                suffix     : builder.suffix.form,
                 confirm    : {
                     required: false,
                     title   : gettextCatalog.getString('Confirm'),

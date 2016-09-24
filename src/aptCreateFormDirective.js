@@ -73,8 +73,8 @@ function aptCreateFormDirective(builder) {
         };
 
 
-        if (_.has(builder, 'form.require')) {
-            _.set(directive, 'require', _.get(builder, 'form.require'));
+        if (builder.form.require) {
+            _.set(directive, 'require', builder.form.require);
         }
 
         return directive;
@@ -97,7 +97,7 @@ function aptCreateFormDirective(builder) {
             //     return;
             // }
 
-            if (builder.form && builder.form.link && angular.isFunction(builder.form.link)) {
+            if (_.isFunction(builder.form.link)) {
                 builder.form.link.call(this, $injector, builder, scope, elem, attrs, ctrls);
             }
             var $timeout = $injector.get('$timeout');
@@ -120,17 +120,17 @@ function aptCreateFormDirective(builder) {
 
         vm.builder = builder;
 
-        if (angular.isArray(vm.item)) {
+        if (_.isArray(vm.item)) {
             aptUtils.showError('Form Error', 'Form cannot accept an array!');
             return;
         }
 
         var readonlyFields = $scope[builder.getControllerAsName('form')].readonlyFields;
-        if (readonlyFields && !angular.isArray(readonlyFields)) {
+        if (readonlyFields && !_.isArray(readonlyFields)) {
             readonlyFields = [readonlyFields];
         }
 
-        if (builder.form && builder.form.beforeCreate && angular.isFunction(builder.form.beforeCreate)) {
+        if (_.isFunction(builder.form.beforeCreate)) {
             var returnValue = builder.form.beforeCreate.call(this, $injector, $scope, builder);
             if (returnValue === false) {
                 return;
@@ -145,24 +145,24 @@ function aptCreateFormDirective(builder) {
             readonlyFields: readonlyFields,
             mute          : vm.mute,
             stay          : _.has(vm, 'stay') ? vm.stay : true,
-            onDataLoad    : (_.isFunction(_.get(builder, 'form.onDataLoad')) ? builder.form.onDataLoad : vm.onDataLoad),
+            onDataLoad    : (_.isFunction(builder.form.onDataLoad) ? builder.form.onDataLoad : vm.onDataLoad),
             hasParent     : vm.hasParent,
             /**
              * must return a promise ($q)
              */
-            onBeforeSubmit: (_.isFunction(_.get(builder, 'form.onBeforeSubmit')) ? builder.form.onBeforeSubmit : vm.onBeforeSubmit),
+            onBeforeSubmit: (_.isFunction(builder.form.onBeforeSubmit) ? builder.form.onBeforeSubmit : vm.onBeforeSubmit),
             name          : vm.name
         });
 
-        if (builder.form && builder.form.defaults) {
-            var defaults = angular.isFunction(builder.form.defaults)
+        if (builder.form.defaults) {
+            var defaults = _.isFunction(builder.form.defaults)
                 ? builder.form.defaults.call(vm, $injector, $scope, builder)
                 : builder.form.defaults;
 
             _.defaults(vm.form.data, defaults);
         }
 
-        if (builder.form && builder.form.controller && angular.isFunction(builder.form.controller)) {
+        if (_.isFunction(builder.form.controller)) {
             builder.form.controller.call(vm, $injector, $scope, builder);
         }
 
@@ -209,8 +209,8 @@ function aptCreateFormDirective(builder) {
 
         ///
 
-        if (!_.has(builder, 'form.title')) {
-            _.set(builder, 'form.title', builder.Domain + ' Form');
+        if (!builder.form.title) {
+            builder.form.title = builder.Domain + ' Form';
         }
 
         ///

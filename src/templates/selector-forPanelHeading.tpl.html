@@ -1,0 +1,14 @@
+<ul class="icons-list mt-5">
+	<li ng-repeat="item in <<vm>>.data">
+		<a class="label-rounded p-5 pr-10 pl-10 mr-10"
+		   ng-class="{true:'bg-orange-800 text-white', false:''}[<<vm>>.selectedItem() == item]"
+		   ng-click="<<vm>>.selectedItem(item)">
+			<i class="{{item.conf.icon}}"></i>
+            <span class="">
+                <span ng-if="!<<vm>>.translate && !<<vm>>.translateContext">{{item._selectorTitle}}</span>
+                <span ng-if="<<vm>>.translate && !<<vm>>.translateContext">{{item._selectorTitle|capitalize|translate}}</span>
+                <span ng-if="<<vm>>.translate && <<vm>>.translateContext">{{item._selectorTitle|capitalize|translate:<<vm>>.translateContext}}</span>
+            </span>
+		</a>
+	</li>
+</ul>

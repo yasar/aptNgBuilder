@@ -64,7 +64,7 @@ function aptCreateManagerDirective(builder) {
         }
 
         function linkFn(scope, elem, attrs, ctrls, x) {
-            if (builder.manager && builder.manager.link && angular.isFunction(builder.manager.link)) {
+            if (_.isFunction(builder.manager.link)) {
                 builder.manager.link.call(this, $injector, builder, scope, elem, attrs, ctrls);
             }
         }
@@ -76,7 +76,7 @@ function aptCreateManagerDirective(builder) {
         var service  = $injector.get(builder.getServiceName('Service'));
         var aptUtils = $injector.get('aptUtils');
 
-        if (builder.manager && builder.manager.beforeDataLoad && angular.isFunction(builder.manager.beforeDataLoad)) {
+        if (_.isFunction(builder.manager.beforeDataLoad)) {
             builder.manager.beforeDataLoad.call(this, $injector, $scope, builder);
         }
 
@@ -84,15 +84,14 @@ function aptCreateManagerDirective(builder) {
         if (!vm.item && !vm.items && vm.itemId) {
             vm.item = {};
             service.get(vm.itemId).then(function (data) {
-                //aptUtils.removeAndMerge(vm.item, data);
                 _.merge(vm.item, data);
-                if (_.isFunction(_.get(builder, 'manager.onDataLoad'))) {
+                if (_.isFunction(builder.manager.onDataLoad)) {
                     builder.manager.onDataLoad();
                 }
             });
         }
 
-        if (builder.manager && builder.manager.controller && angular.isFunction(builder.manager.controller)) {
+        if (_.isFunction(builder.manager.controller)) {
             builder.manager.controller.call(this, $injector, $scope, builder);
         }
 

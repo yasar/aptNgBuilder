@@ -35,15 +35,13 @@ function aptCreateLayoutController(builder) {
         aptTempl.config.showSidebarLeft     = true;
         aptTempl.config.showSidebarRight    = false;
 
-        if (builder.layout) {
 
-            if (builder.layout.templConfig && _.isObject(builder.layout.templConfig)) {
-                _.merge(aptTempl.config, builder.layout.templConfig);
-            }
+        if (_.isObject(builder.layout.templConfig)) {
+            _.merge(aptTempl.config, builder.layout.templConfig);
+        }
 
-            if (builder.layout.controller && _.isFunction(builder.layout.controller)) {
-                builder.layout.controller.call(this, $injector, $scope, builder);
-            }
+        if (_.isFunction(builder.layout.controller)) {
+            builder.layout.controller.call(this, $injector, $scope, builder);
         }
 
         if (service && service._destroy) {
