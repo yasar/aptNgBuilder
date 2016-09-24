@@ -1,0 +1,29 @@
+<div class="input-group input-group-xs">
+    <ui-select theme="bootstrap" <<multiple>>
+               ng-class="{'selectorLoading': <<vm>>.isLoading}"
+               ng-model="<<vm>>.selectedItem"
+               ng-model-options="{getterSetter: true}"
+               ng-if="!<<vm>>.readonly"
+               ng-hide="<<vm>>.locked">
+        <ui-select-match placeholder="{{<<vm>>.placeholder}}"
+                         class="ui-select-match">
+            <span ng-if="!<<vm>>.translate">{{$select.selected._selectorTitle || 'Untitled'}}</span>
+            <span ng-if="<<vm>>.translate && !<<vm>>.translateContext">{{$select.selected._selectorTitle|translate}}</span>
+            <span ng-if="<<vm>>.translate && <<vm>>.translateContext">{{$select.selected._selectorTitle|translate:<<vm>>.translateContext}}</span>
+        </ui-select-match>
+        <ui-select-choices repeat="item in <<vm>>.data | filter: $select.search" class="ui-select-choices"
+                           refresh="<<vm>>.search($select.search)"
+                           refresh-delay="500">
+            <div ng-if="!<<vm>>.translate" ng-bind-html="(item._selectorTitle) | highlight: $select.search"></div>
+            <div ng-if="<<vm>>.translate && !<<vm>>.translateContext"
+                 ng-bind-html="(item._selectorTitle|translate) | highlight: $select.search"></div>
+            <div ng-if="<<vm>>.translate && <<vm>>.translateContext"
+                 ng-bind-html="(item._selectorTitle|translate:<<vm>>.translateContext) | highlight: $select.search"></div>
+        </ui-select-choices>
+    </ui-select>
+
+    <p ng-show="<<vm>>.readonly || <<vm>>.locked"
+       class="form-control">{{<<vm>>.readonlyData._selectorTitle}}</p>
+
+    <div data-selector-menu domain="<<domain>>" model-base="<<vm>>"></div>
+</div>

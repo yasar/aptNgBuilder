@@ -7,6 +7,8 @@ function aptBuilder(conf) {
     this.domain             = null;
     this.title              = null; // used for menu entries and possible other needs.
     this.package            = null;
+    this.icon               = '';
+    this.dependencies       = ['app.common'];
     this.suffix             = {
         form    : 'form',
         list    : 'list',
@@ -28,30 +30,57 @@ function aptBuilder(conf) {
         managerDirective : false,
         routeConfig      : false
     };
-
-    this.model = {
+    /**
+     * this property is used in aptCreateSelectorDirective
+     */
+    this.disable = {
+        addNew: false,
+        edit  : false
+    };
+    this.model    = {
         normalize           : null,
         restize             : null,
         requestInterceptors : null,
         responseInterceptors: null
     };
-
-    this.service = {
+    this.service  = {
         methods: {},
         edit   : {
             before: null
         }
     };
-
-    this.layout = {
+    this.form     = {
+        beforeCreate   : null,
+        controller     : null,
+        enableAddBefore: true,
+        defaults       : null,
+        link           : null,
+        onBeforeSubmit : null,
+        onDataLoad     : null,
+        require        : null,
+        title          : null,
+    };
+    this.layout   = {
         templConfig: {},
         template   : null,
         controller : null //for callback only
     };
-
-    this.dependencies = ['app.common'];
-
-    this.icon = '';
+    this.list     = {
+        beforeAddNew  : null,
+        controller    : null,
+        link          : null,
+        onBeforeReload: null,
+        rowMenu       : null,
+    };
+    this.manager  = {
+        beforeDataLoad: null,
+        controller    : null,
+        link          : null,
+        onDataLoad    : null
+    };
+    this.selector = {
+        controller: null
+    };
 
     $.extend(true, this, conf);
 }

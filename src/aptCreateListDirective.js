@@ -85,7 +85,7 @@ function aptCreateListDirective(builder) {
                 datatable.attr('data-options', tAttrs.tableOptions);
             }
 
-            if (_.isFunction(_.get(builder, 'list.link'))) {
+            if (_.isFunction(builder.list.link)) {
                 return function (scope, elem, attrs, ctrls) {
                     builder.list.link.call(this, $injector, builder, scope, elem, attrs, ctrls);
                 };
@@ -129,8 +129,7 @@ function aptCreateListDirective(builder) {
         vm.selectedItem         = null;
         vm.showStatusChangeForm = showStatusChangeForm;
 
-        // if (builder.list && builder.list.controller && angular.isFunction(builder.list.controller)) {
-        if (_.isFunction(_.get(builder, 'list.controller'))) {
+        if (_.isFunction(builder.list.controller)) {
             builder.list.controller.call(this, $injector, $scope, builder);
         }
 
@@ -183,7 +182,7 @@ function aptCreateListDirective(builder) {
          * add before yapıp yapmayacagını configure etmek için duzenlendi.
          */
         function addNew() {
-            if (_.has(builder.list, 'beforeAddNew') && _.isFunction(builder.list.beforeAddNew)) {
+            if (_.isFunction(builder.list.beforeAddNew)) {
                 builder.list.beforeAddNew.call(this, $injector, $scope, builder).then(function () {
                     proceed();
                 }, function () {
@@ -197,7 +196,14 @@ function aptCreateListDirective(builder) {
                 if (_.isUndefined(vm.addNewConf)) {
                     vm.addNewConf = {};
                 }
-                _.defaults(vm.addNewConf, {popup: true, add_before: true, required: true, suffix: 'form', stay: true});
+                // _.defaults(vm.addNewConf, {popup: true, add_before: true, required: true, suffix: 'form', stay: true});
+                _.defaults(vm.addNewConf, {
+                    popup     : true,
+                    add_before: builder.form.enableAddBefore,
+                    required  : true,
+                    suffix    : builder.suffix.form,
+                    stay      : true
+                });
 
                 return service.addNew({
                     initialData: vm.initialData,
@@ -215,7 +221,7 @@ function aptCreateListDirective(builder) {
 
         function reloadFn() {
             var proceed = true;
-            if (builder.list && builder.list.onBeforeReload && angular.isFunction(builder.list.onBeforeReload)) {
+            if (angular.isFunction(builder.list.onBeforeReload)) {
                 proceed = builder.list.onBeforeReload.call(this, $injector, vm, $scope);
             }
 
@@ -226,7 +232,7 @@ function aptCreateListDirective(builder) {
 
         function getRowMenu() {
             var rowMenu;
-            if (builder.list && builder.list.rowMenu && angular.isFunction(builder.list.rowMenu)) {
+            if (angular.isFunction(builder.list.rowMenu)) {
                 rowMenu = builder.list.rowMenu.call(this, $injector, vm, $scope);
             } else if (angular.isFunction(builder.rowMenu)) {
                 rowMenu = builder.rowMenu.call(this, $injector, vm, $scope);

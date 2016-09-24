@@ -6,19 +6,17 @@ function aptCreateSelectorDirective(builder) {
 
     var suffix   = builder.getSuffix('selector');
     var path     = builder.getPath(suffix);
-    var pathSelf = 'common/fields';
+    var pathSelf = 'aptNgBuilder/templates';
 
     angular
         .module(builder.getModuleName())
-        .directive(builder.getDirectiveName('selector'), fn);
+        /**
+         * not sure if we should use `suffix` instead of 'selector' below (?!)
+         */
+        .directive(builder.getDirectiveName('selector'), Directive);
 
-    fn.$inject = ['$injector'];
-    function fn($injector) {
-        return aptSelectorDirective(builder, $injector);
-    }
-
-    function aptSelectorDirective(builder, $injector) {
-        // console.log(builder.getDirectiveName('selector') + ' directive initialized');
+    Directive.$inject = ['$injector'];
+    function Directive($injector) {
         return {
             restrict        : 'EA', // ACME
             replace         : true,
@@ -58,12 +56,11 @@ function aptCreateSelectorDirective(builder) {
                  */
                 listClass        : '@?',
                 datasource       : '=?',
-
                 /**
                  * when subscribed to `add`, the selector will populate the newly added records
                  * this will listen to event fired at moduleService
                  */
-                subscribeAdd: '<?' // true|false, default: false
+                subscribeAdd     : '<?' // true|false, default: false
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
@@ -85,7 +82,7 @@ function aptCreateSelectorDirective(builder) {
         }
 
         function linkFn($scope, element, attrs, ctrls) {
-            var selectorCtrl      = ctrls[0];
+            var selectorCtrl = ctrls[0];
             // var ngModelController = null;
             // if (ctrls.length > 1) {
             //     ngModelController = ctrls[1];
@@ -141,7 +138,7 @@ function aptCreateSelectorDirective(builder) {
 
             ///
 
-            if (angular.isFunction(vm.onChange)) {
+            if (_.isFunction(vm.onChange)) {
                 element.find('select').on('change', vm.onChange);
             }
 
@@ -168,15 +165,10 @@ function aptCreateSelectorDirective(builder) {
             // selectorCtrl.setNgModelController(ngModelController);
 
         }
-
     }
 
     controllerFn.$inject = ['$injector', '$scope'];
     function controllerFn($injector, $scope) {
-        // if (console) {
-        //     console.log(builder.domain + ' selectorDirective controller executed');
-        // }
-        // return;
         /**
          * initialization
          */
@@ -196,16 +188,16 @@ function aptCreateSelectorDirective(builder) {
         // var ngModelController       = null;
         //
         // vm.setNgModelController = setNgModelController;
-        vm.searchable           = _.isUndefined(vm.searchable) ? true : vm.searchable;
-        vm.selectedItem         = selectedItemFn;
+        vm.searchable      = _.isUndefined(vm.searchable) ? true : vm.searchable;
+        vm.selectedItem    = selectedItemFn;
         // vm.onClick         = onClickFn;
-        vm.search               = searchFn;
-        vm.unlock               = unlockFn;
-        vm.resetSelect          = resetSelectFn;
-        vm.addNew               = addNewFn;
-        vm.edit                 = editFn;
-        vm.reload               = reloadFn;
-        vm.getFilterObject      = getFilterObject;
+        vm.search          = searchFn;
+        vm.unlock          = unlockFn;
+        vm.resetSelect     = resetSelectFn;
+        vm.addNew          = addNewFn;
+        vm.edit            = editFn;
+        vm.reload          = reloadFn;
+        vm.getFilterObject = getFilterObject;
 
         vm.readonlyData = {};
         vm.data         = [];
@@ -215,7 +207,6 @@ function aptCreateSelectorDirective(builder) {
         /**
          * enable auto translate
          * if only `attr.translate=false` is provided then the translation will be disabled
-         * @type {boolean}
          */
         vm.translate = (_.isUndefined(vm.translate) || vm.translate !== false) ? true : false;
 
@@ -237,7 +228,7 @@ function aptCreateSelectorDirective(builder) {
 
         init();
 
-        if (builder.selector && builder.selector.controller && angular.isFunction(builder.selector.controller)) {
+        if (_.isFunction(builder.selector.controller)) {
             builder.selector.controller.call(this, $injector, $scope, builder);
         }
 
@@ -406,7 +397,7 @@ function aptCreateSelectorDirective(builder) {
                  * vm.model will not be assigned to ng-model="x" until the next digest cycle.
                  * so we ensure that callback is invoked on next tick.
                  */
-                if (angular.isFunction(vm.onChange)) {
+                if (_.isFunction(vm.onChange)) {
                     $timeout(function () {
                         vm.onChange({data: _selectedItem});
                     });
@@ -433,9 +424,9 @@ function aptCreateSelectorDirective(builder) {
         function addNewFn() {
             var builderObj = {
                 type      : builder.domain,
-                add_before: true,
+                add_before: builder.form.enableAddBefore,
                 popup     : true,
-                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : 'form'
+                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : builder.suffix.form
             };
             restOp.addNew(builderObj);
         }
@@ -459,7 +450,7 @@ function aptCreateSelectorDirective(builder) {
 
             var builderObj = {
                 type      : builder.domain,
-                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : 'form',
+                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : builder.suffix.form,
                 data      : _selectedItem.get(),
                 modalClass: 'slide-up'
             };
@@ -617,7 +608,7 @@ function aptCreateSelectorDirective(builder) {
             vm.isLoading = false;
             // deferred.resolve(data);
 
-            if (angular.isFunction(vm.onLoad)) {
+            if (_.isFunction(vm.onLoad)) {
                 vm.onLoad({data: vm.data});
             }
 
