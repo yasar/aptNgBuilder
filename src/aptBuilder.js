@@ -335,6 +335,7 @@ aptBuilder.utils = {
         });
     },
     makeDate  : function (item, props) {
+        return this.makeNativeDate(item, props);
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {

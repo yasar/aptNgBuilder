@@ -352,6 +352,13 @@ function aptCreateSelectorDirective(builder) {
 
                 isModelValueInitialized = true;
             }
+            /**
+             * if we have selectItem set already and model is null or undefined,
+             * then model value is set outside and we should reset it internally.
+             */
+            else if (vm.selectItem && (_.isNull(vm.model) || _.isUndefined(vm.model))) {
+                vm.resetSelect();
+            }
         }
 
         function selectedItemFn(value) {
