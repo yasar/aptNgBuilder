@@ -80,7 +80,11 @@ function aptCreateListDirective(builder) {
             }
 
             var datatable = tElement.find('[apt-datatable], apt-datatable');
-            datatable.attr('data-authorize', builder.domain);
+
+            if (builder.authorize) {
+                datatable.attr('data-authorize', builder.domain);
+            }
+
             if (tAttrs.tableOptions) {
                 datatable.attr('data-options', tAttrs.tableOptions);
             }
@@ -166,7 +170,7 @@ function aptCreateListDirective(builder) {
             if (_.isUndefined(vm.editConf)) {
                 vm.editConf = {};
             }
-            _.defaults(vm.editConf, {popup: true, suffix: 'form', stay: true});
+            _.defaults(vm.editConf, {popup: true, suffix: builder.suffix.form, stay: true});
             //return service.edit(item, popup);
             return service.edit(item, vm.editConf);
         }

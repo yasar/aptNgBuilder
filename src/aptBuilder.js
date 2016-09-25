@@ -37,19 +37,19 @@ function aptBuilder(conf) {
         addNew: false,
         edit  : false
     };
-    this.model    = {
+    this.model       = {
         normalize           : null,
         restize             : null,
         requestInterceptors : null,
         responseInterceptors: null
     };
-    this.service  = {
+    this.service     = {
         methods: {},
         edit   : {
             before: null
         }
     };
-    this.form     = {
+    this.form        = {
         beforeCreate   : null,
         controller     : null,
         enableAddBefore: true,
@@ -60,27 +60,28 @@ function aptBuilder(conf) {
         require        : null,
         title          : null,
     };
-    this.layout   = {
+    this.layout      = {
         templConfig: {},
         template   : null,
         controller : null //for callback only
     };
-    this.list     = {
+    this.list        = {
         beforeAddNew  : null,
         controller    : null,
         link          : null,
         onBeforeReload: null,
         rowMenu       : null,
     };
-    this.manager  = {
+    this.manager     = {
         beforeDataLoad: null,
         controller    : null,
         link          : null,
         onDataLoad    : null
     };
-    this.selector = {
+    this.selector    = {
         controller: null
     };
+    this.routeConfig = {};
 
     $.extend(true, this, conf);
 }
