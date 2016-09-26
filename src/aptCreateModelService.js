@@ -106,8 +106,6 @@ function aptCreateModelService(builder) {
             if (builder.model.responseInterceptors) {
                 RestangularProvider.addResponseInterceptor(function (data, operation, what, url, response, deferred) {
                     var routeUrl = RestangularProvider.configuration.baseUrl + '/' + builder.getRestRoute();
-                    // if (data && url.indexOf(routeUrl) == 0) {
-                    // if (data && routeUrl == url) {
                     if (data && (routeUrl == url || url.indexOf(routeUrl + '/') == 0)) {
                         processInterceptor.call(this, builder.model.responseInterceptors, operation, data, what, url, $injector);
                     }
@@ -118,8 +116,6 @@ function aptCreateModelService(builder) {
             if (builder.model.requestInterceptors) {
                 RestangularProvider.addRequestInterceptor(function (data, operation, what, url, response, deferred) {
                     var routeUrl = RestangularProvider.configuration.baseUrl + '/' + builder.getRestRoute();
-                    // if (data && url.indexOf(routeUrl) == 0) {
-                    // if (data && routeUrl == url) {
                     if (data && (routeUrl == url || url.indexOf(routeUrl + '/') == 0)) {
                         processInterceptor.call(this, builder.model.requestInterceptors, operation, data, what, url, $injector);
                     }
@@ -137,6 +133,10 @@ function aptCreateModelService(builder) {
             }
 
             function _process(interceptor) {
+                _.defaults(interceptor, {
+                    operation: ['get', 'customGET', 'put', 'post', 'getList']
+                });
+
                 if (interceptor.operation.indexOf(operation) == -1) {
                     return;
                 }
