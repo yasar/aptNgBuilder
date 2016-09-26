@@ -7,6 +7,8 @@ function aptBuilder(conf) {
     this.domain             = null;
     this.title              = null; // used for menu entries and possible other needs.
     this.package            = null;
+    this.icon               = '';
+    this.dependencies       = ['app.common'];
     this.suffix             = {
         form    : 'form',
         list    : 'list',
@@ -15,8 +17,9 @@ function aptBuilder(conf) {
         layout  : 'layout'
     };
     this.onRun              = null;
-    this.route              = null;
+    this.restRoute          = null;
     this.enableStatusUpdate = false;
+    this.authorize          = false;
     this.create             = {
         listDirective    : true,
         formDirective    : true,
@@ -24,38 +27,72 @@ function aptBuilder(conf) {
         modelService     : true,
         selectorDirective: true,
         layoutController : false,
-        managerDirective : false
+        managerDirective : false,
+        routeConfig      : false
     };
-
-    this.model = {
+    /**
+     * this property is used in aptCreateSelectorDirective
+     */
+    this.disable = {
+        addNew: false,
+        edit  : false
+    };
+    this.model       = {
         normalize           : null,
         restize             : null,
         requestInterceptors : null,
         responseInterceptors: null
     };
-
-    this.service = {
+    this.service     = {
         methods: {},
         edit   : {
             before: null
         }
     };
-
-    this.layout = {
-        template  : null,
-        controller: null //for callback only
+    this.form        = {
+        beforeCreate   : null,
+        controller     : null,
+        enableAddBefore: true,
+        defaults       : null,
+        link           : null,
+        onBeforeSubmit : null,
+        onDataLoad     : null,
+        require        : null,
+        title          : null,
     };
-
-    this.dependencies = ['app.common'];
-
-    this.icon = '';
+    this.layout      = {
+        templConfig: {},
+        template   : null,
+        controller : null //for callback only
+    };
+    this.list        = {
+        beforeAddNew  : null,
+        controller    : null,
+        link          : null,
+        onBeforeReload: null,
+        rowMenu       : null,
+    };
+    this.manager     = {
+        beforeDataLoad: null,
+        controller    : null,
+        link          : null,
+        onDataLoad    : null
+    };
+    this.selector    = {
+        controller: null
+    };
+    this.routeConfig = {};
 
     $.extend(true, this, conf);
 }
 
-aptBuilder.prototype.getRoute = function () {
-    if (this.route) {
-        return this.route;
+aptBuilder.prototype.getRoute     = function () {
+    window.alert('Check console');
+    console.error('getRoute() is deprecated, use getRestRoute() instead');
+};
+aptBuilder.prototype.getRestRoute = function () {
+    if (this.restRoute) {
+        return this.restRoute;
     }
 
     return (this.package ? (this.package == 'modules' ? '' : this.package + '/') : '') + this.domain;
@@ -89,9 +126,9 @@ aptBuilder.prototype.getPath = function (what) {
 };
 
 aptBuilder.prototype.getTemplateContentFileName = function (what, Templ) {
-    var appTemplateKey   = 'appConfig.modules.' + this.domain + '.' + this.getSuffix(what) + '.template',
-        appTemplate      = _.has(Templ, appTemplateKey) ? _.get(Templ, appTemplateKey) : '',
-        templateFileName = '[' + this.getSuffix(what) + '.content]' + (appTemplate ? '.' + appTemplate : '') + '.tpl.html';
+    var appTemplateKey   = 'appConfig.modules.' + this.domain + '.' + this.getSuffix(what) + '.template';
+    var appTemplate      = _.has(Templ, appTemplateKey) ? _.get(Templ, appTemplateKey) : '';
+    var templateFileName = '[' + this.getSuffix(what) + '.content]' + (appTemplate ? '.' + appTemplate : '') + '.tpl.html';
 
     return templateFileName;
 };
@@ -110,6 +147,62 @@ aptBuilder.prototype.getSuffix           = function (type) {
     return _.has(this.suffix, type) ? _.get(this.suffix, type) : type;
 };
 
+// aptBuilder.prototype.permission = function (type, right) {
+//     return type + '_' + _.camelCase(this.domain) + '_' + right;
+// };
+
+aptBuilder.prototype.permission = function (right, type) {
+    return right + '_' + _.snakeCase(this.domain) + '_' + type;
+};
+
+/**
+ * part could be segment part name, or an index
+ *
+ * ex:
+ * var builder = mastBuilder;
+ * var x = builder.segment('list);
+ * >> x = 'main.app002.mast.list';
+ *
+ * var x= builder.segment(1);
+ * >> x = 'main';
+ *
+ * var x= builder.segment(3);
+ * >> x = 'mast';
+ *
+ */
+aptBuilder.prototype.segment = function (part) {
+    if (_.isUndefined(this.segments)) {
+        // this.segments = ['main', this.package, _.snakeCase(this.domain)];
+        this.segments = ['main', this.package, _.camelCase(this.domain)];
+    }
+
+    if (_.isNumber(part)) {
+        return this.segments[part - 1];
+    }
+
+    return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
+};
+// aptBuilder.prototype.segment = function (part) {
+//     var arr = ['main', this.package, _.snakeCase(this.domain), _.trim(part, '.')];
+//     if (_.isNumber(part)) {
+//         console.log('aptBuilder.segment is deprecated. use manual segmentation instead');
+//         return;
+//     }
+//     return this.segments.join('.');
+// };
+
+aptBuilder.prototype.url = function (part) {
+    // var arr = [_.snakeCase(this.domain)];
+    var arr = [_.kebabCase(this.domain)];
+    if (part) {
+        if (_.isNumber(part)) {
+            return arr[part + 1];
+        }
+        arr.push(part);
+    }
+    return '/' + arr.join('/');
+};
+
 aptBuilder.prototype.getLayoutTemplate = function () {
     if (this.layout.template) {
         return this.layout.template;
@@ -118,6 +211,50 @@ aptBuilder.prototype.getLayoutTemplate = function () {
     // view-segment is 3 when the route is like: main.<package>.<module>
     return '<div app-view-segment="3"></div>';
 };
+
+aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
+    var result = _.get(this, checkFor + '.isAuthorized');
+    if (!_.isUndefined(result)) {
+        return result;
+    }
+
+    ///
+
+    var authorizeFor = _.get(this, 'authorize', false);
+    if (authorizeFor !== false) {
+        var aptAuthorizationService = $injector.get('aptAuthorizationService');
+        if (authorizeFor === true) {
+            var right = null;
+            var type  = 'module';
+            switch (checkFor) {
+                case 'list':
+                    right = 'read';
+                    break;
+                case 'form':
+                    right = 'update';
+                    break;
+            }
+            // authorizeFor = [right, this.domain, type].join('_');
+            authorizeFor = this.permission(right, type);
+        }
+
+        if (!_.isArray(authorizeFor)) {
+            authorizeFor = [authorizeFor];
+        }
+
+        result = aptAuthorizationService.isAuthorized(authorizeFor);
+    }
+
+    if (_.isUndefined(result)) {
+        result = true;
+    }
+
+    if (this[checkFor]) {
+        this[checkFor].isAuthorized = result;
+    }
+
+    return result;
+}
 
 aptBuilder.prototype.generate = function (timeout) {
 
@@ -199,6 +336,7 @@ aptBuilder.utils = {
         });
     },
     makeDate  : function (item, props) {
+        return this.makeNativeDate(item, props);
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -208,7 +346,7 @@ aptBuilder.utils = {
         });
     },
 
-    makeNativeDate  : function (item, props) {
+    makeNativeDate: function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -239,7 +377,7 @@ aptBuilder.utils = {
             }
         });
     },
-    makeTime: function (item, props) {
+    makeTime       : function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -248,7 +386,7 @@ aptBuilder.utils = {
             }
         });
     },
-    makeDateTime       : function (item, props) {
+    makeDateTime   : function (item, props) {
         // console.log('aptBuilder.utils.makeDateTime() should not be used!! Check the code');
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
@@ -259,7 +397,7 @@ aptBuilder.utils = {
             }
         });
     },
-    makeString         : function (item, props) {
+    makeString     : function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -276,7 +414,7 @@ aptBuilder.utils = {
             }
         });
     },
-    makeObject         : function (item, props) {
+    makeObject     : function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -290,4 +428,11 @@ aptBuilder.utils = {
     }
 };
 
-aptBuilder.prototype.utils = aptBuilder.utils;
+aptBuilder.directiveObject = {
+    notAuthorized: {
+        template: '<apt-inline-help translate>You are not authorized to access this content. Please consult your system administrator.</apt-inline-help>'
+    }
+};
+
+aptBuilder.prototype.utils           = aptBuilder.utils;
+aptBuilder.prototype.directiveObject = aptBuilder.directiveObject;

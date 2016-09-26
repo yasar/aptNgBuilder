@@ -1,0 +1,11 @@
+<div class="list-group no-border">
+    <div class="list-group-item no-padding no-margin pull-left" ng-repeat="item in <<vm>>.data">
+        <a class="btn btn-icon btn-xlg bg-grey-300"
+           ng-style="<<vm>>.selectedItem() == item ? {backgroundColor: '{{item.conf.backgroundColor}}'} : {}"
+           ng-click="<<vm>>.selectedItem(item)"
+           uib-tooltip="{{item._selectorTitle}}"
+           tooltip-placement="top">
+            <i class="{{item.conf.icon}}"></i>
+        </a>
+    </div>
+</div>

@@ -6,30 +6,28 @@ function aptCreateSelectorDirective(builder) {
 
     var suffix   = builder.getSuffix('selector');
     var path     = builder.getPath(suffix);
-    var pathSelf = 'common/fields';
+    var pathSelf = 'aptNgBuilder/templates';
 
     angular
         .module(builder.getModuleName())
-        .directive(builder.getDirectiveName('selector'), fn);
+        /**
+         * not sure if we should use `suffix` instead of 'selector' below (?!)
+         */
+        .directive(builder.getDirectiveName('selector'), Directive);
 
-    fn.$inject = ['$injector'];
-    function fn($injector) {
-        return aptSelectorDirective(builder, $injector);
-    }
-
-    function aptSelectorDirective(builder, $injector) {
-        // console.log(builder.getDirectiveName('selector') + ' directive initialized');
+    Directive.$inject = ['$injector'];
+    function Directive($injector) {
         return {
             restrict        : 'EA', // ACME
             replace         : true,
             scope           : {},
             bindToController: {
                 model            : '=?ngModel',
-                filterObject     : '=?',
+                filterObject     : '<?',
                 filterGroup      : '@?',
                 filterClass      : '@?',
-                filterRequired   : '=?',
-                loadIf           : '=?',
+                filterRequired   : '<?',
+                loadIf           : '<?',
                 selectItem       : '=?',
                 onChange         : '&?ngChange',
                 onClick          : '&?ngClick',
@@ -40,7 +38,7 @@ function aptCreateSelectorDirective(builder) {
                 placeholder      : '@?',
                 limit            : '@?',
                 locked           : '@?',
-                showMenu         : '=?',
+                showMenu         : '<?',
                 subRoute         : '@?',
                 formHandlerSuffix: '@',
                 /**
@@ -49,21 +47,27 @@ function aptCreateSelectorDirective(builder) {
                  */
                 identifier       : '@',
                 isMultiple       : '@?',
-                translate        : '=?',
+                translate        : '<?',
                 translateContext : '@?',
-                searchable       : '=?',
+                searchable       : '<?',
                 /**
                  * can be used to assign `pre-scrollable` to the holder class
                  * when view type is `list`. so that search box will stay above the scrolling table.
                  */
                 listClass        : '@?',
-                datasource       : '=?'
+                datasource       : '=?',
+                /**
+                 * when subscribed to `add`, the selector will populate the newly added records
+                 * this will listen to event fired at moduleService
+                 */
+                subscribeAdd     : '<?' // true|false, default: false
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
             // link            : linkFn,
-            compile         : compileFn
-
+            compile         : compileFn,
+            // require         : [builder.getDirectiveName('selector'), '?ngModel']
+            require         : [builder.getDirectiveName('selector')]
         };
 
         function compileFn(element, attrs) {
@@ -77,145 +81,154 @@ function aptCreateSelectorDirective(builder) {
             };
         }
 
-        function linkFn($scope, element, attrs, selectorCtrl) {
-            {
-                var $templateCache = $injector.get('$templateCache');
-                var tpl;
-                var found          = false;
-                var vm             = $scope[builder.getControllerAsName('selector')];
+        function linkFn($scope, element, attrs, ctrls) {
+            var selectorCtrl = ctrls[0];
+            // var ngModelController = null;
+            // if (ctrls.length > 1) {
+            //     ngModelController = ctrls[1];
+            // }
+            var $templateCache = $injector.get('$templateCache');
+            var tpl;
+            var found          = false;
+            var vm             = $scope[builder.getControllerAsName('selector')];
 
-                {
-                    if (attrs.readonly == 'true') {
-                        if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-readonly.tpl.html'))) {
-                            found = true;
-                        } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-readonly.tpl.html'))) {
-                            found = true;
-                        }
-                    } else if (!attrs.viewType) {
-                        if (!found && (tpl = $templateCache.get(path + '/' + suffix + '.tpl.html'))) {
-                            found = true;
-                        } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '.tpl.html'))) {
-                            found = true;
-                        }
-                    } else {
-                        if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
-                            found = true;
-                        } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
-                            found = true;
-                        }
-                    }
+            ///
+
+            if (attrs.readonly == 'true') {
+                if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-readonly.tpl.html'))) {
+                    found = true;
+                } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-readonly.tpl.html'))) {
+                    found = true;
                 }
-
-                if (!found) {
-                    console.error('Template can not be found.');
-                    return;
+            } else if (!attrs.viewType) {
+                if (!found && (tpl = $templateCache.get(path + '/' + suffix + '.tpl.html'))) {
+                    found = true;
+                } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '.tpl.html'))) {
+                    found = true;
                 }
-
-                tpl            = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
-                tpl            = tpl.replace(/<<domain>>/g, builder.domain);
-                tpl            = tpl.replace(/<<multiple>>/g, (selectorCtrl.isMultiple ? 'multiple' : ''));
-                var $compile   = $injector.get('$compile');
-                var compiledEl = $compile(tpl)($scope);
-                // element.replaceWith(compiledEl);
-                // element        = compiledEl;
-                element.contents().remove();
-                element.append(compiledEl);
-
-                // var $compile   = $injector.get('$compile');
-                // element.contents().remove();
-                // element.html(tpl);
-                // $compile(element.contents())($scope);
-            }
-
-            {
-                if (angular.isFunction(vm.onChange)) {
-                    element.find('select').on('change', vm.onChange);
-                }
-
-                // if (angular.isFunction(vm.onClick)) {
-                //     element.find('select').on('click', vm.onClick);
-                // }
-
-                if (attrs.class) {
-                    element.find('select, .list-group, .input-group').addClass(attrs.class);
-                    element.removeClass(attrs.class);
-                }
-
-                if (attrs.style) {
-                    element.find('select, .list-group, .input-group').attr('style', attrs.style);
-                    element.removeAttr('style');
+            } else {
+                if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
+                    found = true;
+                } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
+                    found = true;
                 }
             }
+
+            ///
+
+            if (!found) {
+                console.error('Template can not be found.');
+                return;
+            }
+
+            tpl            = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
+            tpl            = tpl.replace(/<<domain>>/g, builder.domain);
+            tpl            = tpl.replace(/<<multiple>>/g, (selectorCtrl.isMultiple ? 'multiple' : ''));
+            var $compile   = $injector.get('$compile');
+            var compiledEl = $compile(tpl)($scope);
+            // element.replaceWith(compiledEl);
+            // element        = compiledEl;
+            element.contents().remove();
+            element.append(compiledEl);
+
+            // var $compile   = $injector.get('$compile');
+            // element.contents().remove();
+            // element.html(tpl);
+            // $compile(element.contents())($scope);
+
+            ///
+
+            if (_.isFunction(vm.onChange)) {
+                element.find('select').on('change', vm.onChange);
+            }
+
+            // if (angular.isFunction(vm.onClick)) {
+            //     element.find('select').on('click', vm.onClick);
+            // }
+
+            if (attrs.class) {
+                element.find('select, .list-group, .input-group').addClass(attrs.class);
+                element.removeClass(attrs.class);
+            }
+
+            if (attrs.style) {
+                element.find('select, .list-group, .input-group').attr('style', attrs.style);
+                element.removeAttr('style');
+            }
+
+            ///
+
+            // ngModelController.$render = function() {
+            //     iElement.find('div').text(ngModelController.$viewValue);
+            // };
+
+            // selectorCtrl.setNgModelController(ngModelController);
+
         }
-
     }
 
     controllerFn.$inject = ['$injector', '$scope'];
     function controllerFn($injector, $scope) {
-        // if (console) {
-        //     console.log(builder.domain + ' selectorDirective controller executed');
-        // }
-        // return;
         /**
          * initialization
          */
-        {
-            var NotifyingService        = $injector.get('NotifyingService');
-            var model                   = $injector.get(builder.getServiceName('model'));
-            var service                 = $injector.get(builder.getServiceName('service'));
-            var restOp                  = $injector.get('restOperationService');
-            var Restangular             = $injector.get('Restangular');
-            var aptUtils                = $injector.get('aptUtils');
-            var gettextCatalog          = $injector.get('gettextCatalog');
-            var $timeout                = $injector.get('$timeout');
-            var vm                      = this;
-            var _selectedItem           = null;
-            // var datasource              = null;
-            var filterObject            = {};
-            var isModelValueInitialized = false;
+        var NotifyingService        = $injector.get('NotifyingService');
+        var model                   = $injector.get(builder.getServiceName('model'));
+        var service                 = $injector.get(builder.getServiceName('service'));
+        var restOp                  = $injector.get('restOperationService');
+        var Restangular             = $injector.get('Restangular');
+        var aptUtils                = $injector.get('aptUtils');
+        var gettextCatalog          = $injector.get('gettextCatalog');
+        var $timeout                = $injector.get('$timeout');
+        var vm                      = this;
+        var _selectedItem           = null;
+        // var datasource              = null;
+        var filterObject            = {};
+        var isModelValueInitialized = false;
+        // var ngModelController       = null;
+        //
+        // vm.setNgModelController = setNgModelController;
+        vm.searchable      = _.isUndefined(vm.searchable) ? true : vm.searchable;
+        vm.selectedItem    = selectedItemFn;
+        // vm.onClick         = onClickFn;
+        vm.search          = searchFn;
+        vm.unlock          = unlockFn;
+        vm.resetSelect     = resetSelectFn;
+        vm.addNew          = addNewFn;
+        vm.edit            = editFn;
+        vm.reload          = reloadFn;
+        vm.getFilterObject = getFilterObject;
 
+        vm.readonlyData = {};
+        vm.data         = [];
+        // vm.data         = service.getRepo();
+        vm.isLoading    = false;
+        vm.isMultiple   = vm.isMultiple == 'true';
+        /**
+         * enable auto translate
+         * if only `attr.translate=false` is provided then the translation will be disabled
+         */
+        vm.translate = (_.isUndefined(vm.translate) || vm.translate !== false) ? true : false;
 
-            vm.selectedItem    = selectedItemFn;
-            // vm.onClick         = onClickFn;
-            vm.search          = searchFn;
-            vm.unlock          = unlockFn;
-            vm.resetSelect     = resetSelectFn;
-            vm.addNew          = addNewFn;
-            vm.edit            = editFn;
-            vm.reload          = reloadFn;
-            vm.getFilterObject = getFilterObject;
-
-            vm.readonlyData = {};
-            vm.data         = [];
-            // vm.data         = service.getRepo();
-            vm.isLoading    = false;
-            vm.isMultiple   = vm.isMultiple == 'true';
-            /**
-             * enable auto translate
-             * if only `attr.translate=false` is provided then the translation will be disabled
-             * @type {boolean}
-             */
-            vm.translate = (_.isUndefined(vm.translate) || vm.translate !== false) ? true : false;
-
-            var defaultPlaceholder = '...';
-            vm.placeholder         = vm.placeholder || defaultPlaceholder;
-            if (vm.placeholder != defaultPlaceholder && vm.translate) {
-                vm.placeholder = gettextCatalog.getString(vm.placeholder);
-            }
-
-            if (_.get(builder, 'disable.addNew') === true) {
-                delete vm.addNew;
-            }
-
-            if (_.get(builder, 'disable.edit') === true) {
-                delete vm.edit;
-            }
-
+        var defaultPlaceholder = '...';
+        vm.placeholder         = vm.placeholder || defaultPlaceholder;
+        if (vm.placeholder != defaultPlaceholder && vm.translate) {
+            vm.placeholder = gettextCatalog.getString(vm.placeholder);
         }
+
+        if (_.get(builder, 'disable.addNew') === true) {
+            delete vm.addNew;
+        }
+
+        if (_.get(builder, 'disable.edit') === true) {
+            delete vm.edit;
+        }
+
+        ///
 
         init();
 
-        if (builder.selector && builder.selector.controller && angular.isFunction(builder.selector.controller)) {
+        if (_.isFunction(builder.selector.controller)) {
             builder.selector.controller.call(this, $injector, $scope, builder);
         }
 
@@ -258,9 +271,23 @@ function aptCreateSelectorDirective(builder) {
             }, true
         );
 
+        if (vm.subscribeAdd) {
+            NotifyingService.subscribe($scope, builder.domain + ':added', function (event, data) {
+                vm.data.push(data.data);
+            });
+        }
+
         function getFilterObject() {
             return filterObject;
         }
+
+        // function setNgModelController(ctrl) {
+        //     ngModelController = ctrl;
+        //
+        //     ngModelController.$render = function () {
+        //         vm.model = ngModelController.$viewValue;
+        //     };
+        // }
 
         function initModelValue() {
             if (vm.model) {
@@ -325,6 +352,13 @@ function aptCreateSelectorDirective(builder) {
 
                 isModelValueInitialized = true;
             }
+            /**
+             * if we have selectItem set already and model is null or undefined,
+             * then model value is set outside and we should reset it internally.
+             */
+            else if (vm.selectItem && (_.isNull(vm.model) || _.isUndefined(vm.model))) {
+                vm.resetSelect();
+            }
         }
 
         function selectedItemFn(value) {
@@ -357,6 +391,7 @@ function aptCreateSelectorDirective(builder) {
                  */
                 if (value !== null) {
                     vm.model = _selectedItem[builder.getPrimaryKey()];
+                    // ngModelController.$setViewValue(vm.model);
                 } else {
                     vm.model = null;
                 }
@@ -369,7 +404,7 @@ function aptCreateSelectorDirective(builder) {
                  * vm.model will not be assigned to ng-model="x" until the next digest cycle.
                  * so we ensure that callback is invoked on next tick.
                  */
-                if (angular.isFunction(vm.onChange)) {
+                if (_.isFunction(vm.onChange)) {
                     $timeout(function () {
                         vm.onChange({data: _selectedItem});
                     });
@@ -396,9 +431,9 @@ function aptCreateSelectorDirective(builder) {
         function addNewFn() {
             var builderObj = {
                 type      : builder.domain,
-                add_before: true,
+                add_before: builder.form.enableAddBefore,
                 popup     : true,
-                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : 'form'
+                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : builder.suffix.form
             };
             restOp.addNew(builderObj);
         }
@@ -422,7 +457,7 @@ function aptCreateSelectorDirective(builder) {
 
             var builderObj = {
                 type      : builder.domain,
-                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : 'form',
+                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : builder.suffix.form,
                 data      : _selectedItem.get(),
                 modalClass: 'slide-up'
             };
@@ -580,7 +615,7 @@ function aptCreateSelectorDirective(builder) {
             vm.isLoading = false;
             // deferred.resolve(data);
 
-            if (angular.isFunction(vm.onLoad)) {
+            if (_.isFunction(vm.onLoad)) {
                 vm.onLoad({data: vm.data});
             }
 

@@ -18,6 +18,10 @@ function aptCreateListDirective(builder) {
 
     fn.$inject = ['$injector'];
     function fn($injector) {
+        if (!builder.isAuthorized($injector, 'list')) {
+            return aptBuilder.directiveObject.notAuthorized;
+        }
+
         return new aptListDirective(builder, $injector);
     }
 
@@ -75,17 +79,32 @@ function aptCreateListDirective(builder) {
                     .css('position', 'relative');
             }
 
+            var datatable = tElement.find('[apt-datatable], apt-datatable');
+
+            if (builder.authorize) {
+                datatable.attr('data-authorize', builder.domain);
+            }
+
             if (tAttrs.tableOptions) {
-                var datatable = tElement.find('[apt-datatable], apt-datatable');
                 datatable.attr('data-options', tAttrs.tableOptions);
+            }
+
+            if (_.isFunction(builder.list.link)) {
+                return function (scope, elem, attrs, ctrls) {
+                    builder.list.link.call(this, $injector, builder, scope, elem, attrs, ctrls);
+                };
             }
         }
 
         function templateUrlFn(elem, attrs) {
+            var aptTempl       = $injector.get('aptTempl');
+            var appTemplateKey = 'appConfig.modules.' + builder.domain + '.' + builder.getSuffix('list') + '.template';
+            var name           = builder.suffix.list + (_.has(aptTempl, appTemplateKey) ? '.' + _.get(aptTempl, appTemplateKey) : '');
+
             if (attrs.viewType) {
-                return path + '/' + builder.suffix.list + '-' + attrs.viewType + '.tpl.html';
+                return path + '/' + name + '-' + attrs.viewType + '.tpl.html';
             } else {
-                return path + '/' + builder.suffix.list + '.tpl.html';
+                return path + '/' + name + '.tpl.html';
             }
         }
 
@@ -114,12 +133,12 @@ function aptCreateListDirective(builder) {
         vm.selectedItem         = null;
         vm.showStatusChangeForm = showStatusChangeForm;
 
-        // if (builder.list && builder.list.controller && angular.isFunction(builder.list.controller)) {
-        if (_.isFunction(_.get(builder, 'list.controller'))) {
+        if (_.isFunction(builder.list.controller)) {
             builder.list.controller.call(this, $injector, $scope, builder);
         }
 
-        if (_.isUndefined(vm.data)) {
+        // if (_.isUndefined(vm.data)) {
+        if (_.isUndefined(vm.data) || _.isNull(vm.data)) {
             vm.data = service.getRepo();
         }
 
@@ -151,7 +170,7 @@ function aptCreateListDirective(builder) {
             if (_.isUndefined(vm.editConf)) {
                 vm.editConf = {};
             }
-            _.defaults(vm.editConf, {popup: true, suffix: 'form', stay: true});
+            _.defaults(vm.editConf, {popup: true, suffix: builder.suffix.form, stay: true});
             //return service.edit(item, popup);
             return service.edit(item, vm.editConf);
         }
@@ -167,7 +186,7 @@ function aptCreateListDirective(builder) {
          * add before yapıp yapmayacagını configure etmek için duzenlendi.
          */
         function addNew() {
-            if (_.has(builder.list, 'beforeAddNew') && _.isFunction(builder.list.beforeAddNew)) {
+            if (_.isFunction(builder.list.beforeAddNew)) {
                 builder.list.beforeAddNew.call(this, $injector, $scope, builder).then(function () {
                     proceed();
                 }, function () {
@@ -181,7 +200,14 @@ function aptCreateListDirective(builder) {
                 if (_.isUndefined(vm.addNewConf)) {
                     vm.addNewConf = {};
                 }
-                _.defaults(vm.addNewConf, {popup: true, add_before: true, required: true, suffix: 'form', stay: true});
+                // _.defaults(vm.addNewConf, {popup: true, add_before: true, required: true, suffix: 'form', stay: true});
+                _.defaults(vm.addNewConf, {
+                    popup     : true,
+                    add_before: builder.form.enableAddBefore,
+                    required  : true,
+                    suffix    : builder.suffix.form,
+                    stay      : true
+                });
 
                 return service.addNew({
                     initialData: vm.initialData,
@@ -198,15 +224,22 @@ function aptCreateListDirective(builder) {
         }
 
         function reloadFn() {
-            load(false);
+            var proceed = true;
+            if (angular.isFunction(builder.list.onBeforeReload)) {
+                proceed = builder.list.onBeforeReload.call(this, $injector, vm, $scope);
+            }
+
+            if (proceed) {
+                load(false);
+            }
         }
 
         function getRowMenu() {
             var rowMenu;
-            if (builder.list && builder.list.rowMenu && angular.isFunction(builder.list.rowMenu)) {
-                rowMenu = builder.list.rowMenu.call(this, $injector, vm,$scope);
+            if (angular.isFunction(builder.list.rowMenu)) {
+                rowMenu = builder.list.rowMenu.call(this, $injector, vm, $scope);
             } else if (angular.isFunction(builder.rowMenu)) {
-                rowMenu = builder.rowMenu.call(this, $injector, vm,$scope);
+                rowMenu = builder.rowMenu.call(this, $injector, vm, $scope);
             } else if (angular.isObject(builder.rowMenu)) {
                 rowMenu = builder.rowMenu;
             } else {
@@ -238,6 +271,7 @@ function aptCreateListDirective(builder) {
             var menuItemEdit = aptMenu.Item({
                 text : 'Edit',
                 icon : 'icon-pencil',
+                auth : [builder.permission('update', 'module')],
                 click: function (item) {
                     vm.edit(item);
                 }
@@ -247,6 +281,7 @@ function aptCreateListDirective(builder) {
                 text : 'Delete',
                 icon : 'icon-close2',
                 class: 'btn-danger',
+                auth : [builder.permission('delete', 'module')],
                 click: function (item) {
                     vm.delete(item);
                 }

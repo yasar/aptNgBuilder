@@ -139,6 +139,11 @@ function aptCreateModuleService(builder) {
 
                 vm.setStatus = function (status) {
                     vm.form.data.status_id = status.type_id;
+
+                    var $formController = $('[name=' + vm.form.name + ']').data('$formController');
+                    if ($formController && $formController.$setDirty) {
+                        $formController.$setDirty();
+                    }
                 };
 
                 NotifyingService.subscribe($newScope, builder.domain + '.formCanceled', function () {
@@ -147,35 +152,37 @@ function aptCreateModuleService(builder) {
             }
 
             function getTemplate() {
-                return '<form ng-submit="vmStatusForm.form.submit()" role="form">' +
-                    ' <apt-panel class="no-margin" form="vmStatusForm.form">' +
-                    ' <apt-panel-title>' +
-                    ' <i class="' + builder.icon + ' position-left"></i>' +
-                    ' <span class="text-semibold" translate>Status Update</span>' +
-                    ' </apt-panel-title>' +
-                    ' <apt-panel-body class="text-center">' +
-                    ' <div ng-if="vmStatusForm.isStatusUpdatable==null"' +
-                    ' class="content"><span translate>Please wait..</span>' +
-                    ' </div>' +
-                    ' <div ng-if="vmStatusForm.isStatusUpdatable==false"' +
-                    ' class="alert alert-warning"><span translate>The status for this record can not be changed.</span>' +
-                    ' </div>' +
-                    ' <div ng-if="vmStatusForm.isStatusUpdatable==true">' +
-                    ' <button type="button"' +
-                    ' class="btn btn-default btn-float ml-10 mr-10"' +
-                    ' ng-class="{\'btn-info\':vmStatusForm.form.data.status_id == status.type_id}"' +
-                    ' ng-click="vmStatusForm.setStatus(status)"' +
-                    ' data-ng-repeat="status in vmStatusForm.statuses">' +
-                    ' <i data-ng-class="{true:\'icon-play4\', false: \'icon-pause2\'}[vmStatusForm.form.data.status_id == status.type_id]"></i>' +
-                    ' <span>{{status.name|translate}}</span>' +
-                    ' </button>' +
-                    ' </div>' +
-                    ' </apt-panel-body>' +
-                    ' <apt-panel-footer ng-show="vmStatusForm.isStatusUpdatable==true">' +
-                    ' <apt-panel-footer-right defaults></apt-panel-footer-right>' +
-                    ' </apt-panel-footer>' +
-                    ' </apt-panel>' +
-                    ' </form>';
+                return '<form ng-submit="vmStatusForm.form.submit()" name="{{vmStatusForm.form.name}}" role="form" novalidate>' +
+                       ' <apt-panel class="no-margin" form="vmStatusForm.form">' +
+                       ' <apt-panel-title>' +
+                       ' <i class="' + builder.icon + ' position-left"></i>' +
+                       ' <span class="text-semibold" translate>Status Update</span>' +
+                       ' </apt-panel-title>' +
+                       ' <apt-panel-body class="text-center">' +
+                       ' <div ng-if="vmStatusForm.isStatusUpdatable==null"' +
+                       ' class="content"><span translate>Please wait..</span>' +
+                       ' </div>' +
+                       ' <div ng-if="vmStatusForm.isStatusUpdatable==false"' +
+                       ' class="alert alert-warning"><span translate>The status for this record can not be changed.</span>' +
+                       ' </div>' +
+                       ' <div ng-if="vmStatusForm.isStatusUpdatable==true">' +
+                       ' <button type="button"' +
+                       ' class="btn btn-default btn-float ml-10 mr-10"' +
+                       ' ng-class="{\'btn-info\':vmStatusForm.form.data.status_id == status.type_id}"' +
+                       ' ng-click="vmStatusForm.setStatus(status)"' +
+                       ' data-ng-repeat="status in vmStatusForm.statuses">' +
+                       ' <i data-ng-class="{true:\'icon-play4\', false: \'icon-pause2\'}[vmStatusForm.form.data.status_id == status.type_id]"></i>' +
+                       ' <span>{{status.name|translate}}</span>' +
+                       ' </button>' +
+                       ' <input type="hidden" ng-model="vmStatusForm.form.data.status_id" type="hidden" />' +
+                       ' </div>' +
+                       ' </apt-panel-body>' +
+                       ' <apt-panel-footer ng-show="vmStatusForm.isStatusUpdatable==true">' +
+                       ' <apt-panel-footer-left></apt-panel-footer-left>' +
+                       ' <apt-panel-footer-right defaults></apt-panel-footer-right>' +
+                       ' </apt-panel-footer>' +
+                       ' </apt-panel>' +
+                       ' </form>';
             }
         }
 
@@ -344,7 +351,7 @@ function aptCreateModuleService(builder) {
             }
 
             return Restangular.copy(item)
-                // return item
+            // return item
                 .put()
                 .then(function (data) {
                     var filterObj = {},
@@ -381,10 +388,10 @@ function aptCreateModuleService(builder) {
             _builder = _.merge({
                 _builder   : builder,
                 initialData: null,
-                add_before : true,
+                add_before : builder.form.enableAddBefore,
                 popup      : true,
                 stay       : true,
-                suffix     : 'form',
+                suffix     : builder.suffix.form,
                 confirm    : {
                     required: false,
                     title   : gettextCatalog.getString('Confirm'),
@@ -513,6 +520,19 @@ function aptCreateModuleService(builder) {
                 filter = {};
             } else {
                 filter = _.omit(filter, $injector);
+            }
+
+            if (filter) {
+                /**
+                 * fix the date value if there is any
+                 */
+                _.forOwn(filter, function (value, key, filter) {
+                    if (moment.isMoment(value)) {
+                        filter[key] = value.format('YYYY-MM-DD');
+                    } else if (_.isDate(value)) {
+                        filter[key] = moment(value).format('YYYY-MM-DD');
+                    }
+                });
             }
 
             model.getList(filter).then(function (data) {
