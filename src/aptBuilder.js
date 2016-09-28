@@ -32,6 +32,9 @@ function aptBuilder(conf) {
     };
     /**
      * this property is used in aptCreateSelectorDirective
+     *
+     * this will remove the related functions from the scope completely,
+     * doing so, these functions will not be available at all during the application life cycle.
      */
     this.disable = {
         addNew: false,
@@ -79,6 +82,17 @@ function aptBuilder(conf) {
         onDataLoad    : null
     };
     this.selector    = {
+        /**
+         * we can configure the individual items with the configuration object
+         * or set to `true` to enable it with default settings
+         * ot set to `false` to disable it completely
+         */
+        showMenu  : {
+            addNew: true,
+            edit  : true,
+            reload: true,
+            reset : true
+        },
         controller: null
     };
     this.routeConfig = {};

@@ -188,6 +188,20 @@ function aptCreateSelectorDirective(builder) {
         // var ngModelController       = null;
         //
         // vm.setNgModelController = setNgModelController;
+
+        /**
+         * this is required for selector-menu directive.
+         * it will use builder.permission method to get the correct permission string
+         * for the `access` directive to check the authorization.
+         *
+         * note that this is set at scope level, not vm level.
+         * it is required so because, child scopes can access to direct parent scopes,
+         * but not to a vm under any parents' scope.
+         */
+        $scope.builder = builder;
+
+        vm.showMenu = vm.showMenu || _.get(builder, 'selector.showMenu') || true;
+
         vm.searchable      = _.isUndefined(vm.searchable) ? true : vm.searchable;
         vm.selectedItem    = selectedItemFn;
         // vm.onClick         = onClickFn;
@@ -439,6 +453,11 @@ function aptCreateSelectorDirective(builder) {
         }
 
         function editFn() {
+
+            if (_.isNull(_selectedItem)) {
+                return;
+            }
+
             /**
              * if selectedItem is coming from search result,
              * we are supposed to be getting the result from customGET/search
