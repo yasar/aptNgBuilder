@@ -13,10 +13,18 @@ function aptCreateSelectorDirective(builder) {
         /**
          * not sure if we should use `suffix` instead of 'selector' below (?!)
          */
-        .directive(builder.getDirectiveName('selector'), Directive);
+        .directive(builder.getDirectiveName('selector'), fn);
 
-    Directive.$inject = ['$injector'];
-    function Directive($injector) {
+    fn.$inject = ['$injector'];
+    function fn($injector) {
+        if (!builder.isAuthorized($injector, 'list')) {
+            return aptBuilder.directiveObject.notAuthorized;
+        }
+
+        return new aptSelectorDirective(builder, $injector);
+    }
+
+    function aptSelectorDirective(builder, $injector) {
         return {
             restrict        : 'EA', // ACME
             replace         : true,
@@ -38,6 +46,9 @@ function aptCreateSelectorDirective(builder) {
                 placeholder      : '@?',
                 limit            : '@?',
                 locked           : '@?',
+                /**
+                 * check the builder config for more info and options for showMenu
+                 */
                 showMenu         : '<?',
                 subRoute         : '@?',
                 formHandlerSuffix: '@',
@@ -178,6 +189,7 @@ function aptCreateSelectorDirective(builder) {
         var restOp                  = $injector.get('restOperationService');
         var Restangular             = $injector.get('Restangular');
         var aptUtils                = $injector.get('aptUtils');
+        var aptAuthorizationService = $injector.get('aptAuthorizationService');
         var gettextCatalog          = $injector.get('gettextCatalog');
         var $timeout                = $injector.get('$timeout');
         var vm                      = this;
@@ -185,6 +197,7 @@ function aptCreateSelectorDirective(builder) {
         // var datasource              = null;
         var filterObject            = {};
         var isModelValueInitialized = false;
+
         // var ngModelController       = null;
         //
         // vm.setNgModelController = setNgModelController;
@@ -200,8 +213,8 @@ function aptCreateSelectorDirective(builder) {
          */
         $scope.builder = builder;
 
-        vm.showMenu = vm.showMenu || _.get(builder, 'selector.showMenu') || true;
-
+        vm.showMenu        = vm.showMenu || _.get(builder, 'selector.showMenu') || true;
+        // vm.isAuthorized    = builder.authorize ? builder.isAuthorized('list') : true;
         vm.searchable      = _.isUndefined(vm.searchable) ? true : vm.searchable;
         vm.selectedItem    = selectedItemFn;
         // vm.onClick         = onClickFn;
