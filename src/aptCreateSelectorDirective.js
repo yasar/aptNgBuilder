@@ -99,6 +99,7 @@ function aptCreateSelectorDirective(builder) {
             //     ngModelController = ctrls[1];
             // }
             var $templateCache = $injector.get('$templateCache');
+            var $compile       = $injector.get('$compile');
             var tpl;
             var found          = false;
             var vm             = $scope[builder.getControllerAsName('selector')];
@@ -132,20 +133,24 @@ function aptCreateSelectorDirective(builder) {
                 return;
             }
 
-            tpl            = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
-            tpl            = tpl.replace(/<<domain>>/g, builder.domain);
-            tpl            = tpl.replace(/<<multiple>>/g, (selectorCtrl.isMultiple ? 'multiple' : ''));
-            var $compile   = $injector.get('$compile');
-            var compiledEl = $compile(tpl)($scope);
-            // element.replaceWith(compiledEl);
-            // element        = compiledEl;
-            element.contents().remove();
-            element.append(compiledEl);
+            tpl = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
+            tpl = tpl.replace(/<<domain>>/g, builder.domain);
+            tpl = tpl.replace(/<<multiple>>/g, (selectorCtrl.isMultiple ? 'multiple' : ''));
 
-            // var $compile   = $injector.get('$compile');
-            // element.contents().remove();
-            // element.html(tpl);
-            // $compile(element.contents())($scope);
+            element.contents().remove();
+            // element.append($compile(tpl)($scope));
+
+            var $tpl = $(tpl);
+
+            // make sure `required` attribute is transferred.
+            // also note that, we are looking for the element having ng-model as
+            // it is the one obligated to do the validation
+            if (attrs.required) {
+                $tpl.find('[ng-model]').attr('required', attrs.required);
+            }
+
+            element.replaceWith($compile($tpl)($scope));
+
 
             ///
 
