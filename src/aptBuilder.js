@@ -53,14 +53,17 @@ function aptBuilder(conf) {
         }
     };
     this.form        = {
-        beforeCreate   : null,
-        controller     : null,
+        beforeCreate   : null, // hook, function
+        controller     : null, // controller function
         enableAddBefore: true,
-        defaults       : null,
-        link           : null,
-        onBeforeSubmit : null,
-        onDataLoad     : null,
-        require        : null,
+        defaults       : null, // default form field values
+        link           : null, // link function
+        onBeforeSubmit : null, // hook, function
+        onDataLoad     : null, // hook, function
+        require        : null, // NOT SURE what it does
+        muteOnSubmit   : false, // don't broadcast the events (added, update etc.) on form submitted
+        stayOnAdd      : true, // good for when in popup
+        stayOnUpdate   : true, // good for when in popup
         title          : null,
     };
     this.layout      = {
@@ -69,11 +72,12 @@ function aptBuilder(conf) {
         controller : null //for callback only
     };
     this.list        = {
-        beforeAddNew  : null,
-        controller    : null,
-        link          : null,
-        onBeforeReload: null,
-        rowMenu       : null,
+        askConfirmBeforeAddNew: true,
+        controller            : null,
+        link                  : null,
+        onBeforeAddNew        : null,
+        onBeforeReload        : null,
+        rowMenu               : null,
     };
     this.manager     = {
         beforeDataLoad: null,
@@ -158,14 +162,12 @@ aptBuilder.prototype.vm                  = function (type, prop) {
     return this.getControllerAsName(type) + '.' + prop;
 };
 aptBuilder.prototype.getSuffix           = function (type) {
-    return _.has(this.suffix, type) ? _.get(this.suffix, type) : type;
+    var _private = type + '.suffix';
+    var _generic = 'suffix.' + type;
+    return _.has(this, _private) ? _.get(this, _private) : (_.has(this, _generic) ? _.get(this, _generic) : type);
+    // return _.has(this.suffix, type) ? _.get(this.suffix, type) : type;
 };
-
-// aptBuilder.prototype.permission = function (type, right) {
-//     return type + '_' + _.camelCase(this.domain) + '_' + right;
-// };
-
-aptBuilder.prototype.permission = function (right, type) {
+aptBuilder.prototype.permission          = function (right, type) {
     return right + '_' + _.snakeCase(this.domain) + '_' + type;
 };
 
@@ -350,12 +352,12 @@ aptBuilder.utils = {
         });
     },
     makeDate  : function (item, props) {
-        return this.makeNativeDate(item, props);
+        // return this.makeNativeDate(item, props);
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = item[prop] ? moment(item[prop]) : moment();
+                item[prop] = item[prop] ? moment(item[prop],'YYYY-MM-DD HH:mm:ss') : moment();
             }
         });
     },
@@ -365,7 +367,9 @@ aptBuilder.utils = {
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = new Date(item[prop]);
+                // item[prop] = new Date(item[prop]);
+                var t      = item[prop].split(/[- :]/);
+                item[prop] = eval('new Date(' + t.join(',') + ')');
             }
         });
     },
@@ -376,7 +380,6 @@ aptBuilder.utils = {
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = moment(item[prop]).format('YYYY-MM-DD HH:mm');
-                ;
             }
         });
     },
@@ -417,9 +420,9 @@ aptBuilder.utils = {
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop)) {
                 if (moment.isMoment(item[prop])) {
-                    item[prop] = item[prop].format('YYYY-MM-DD');
+                    item[prop] = item[prop].format('YYYY-MM-DD HH:mm:ss');
                 } else if (_.isDate(item[prop])) {
-                    item[prop] = moment(item[prop]).format('YYYY-MM-DD');
+                    item[prop] = moment(item[prop]).format('YYYY-MM-DD HH:mm:ss');
                 } else if (_.isObject(item[prop])) {
                     item[prop] = angular.toJson(item[prop]);
                 } else if (_.isBoolean(item[prop])) {
