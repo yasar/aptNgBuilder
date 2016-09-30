@@ -85,9 +85,18 @@ function aptCreateListDirective(builder) {
                 datatable.attr('data-authorize', builder.domain);
             }
 
+            ///
+
+            var tableOptions = {
+                title: builder.title
+            };
+
             if (tAttrs.tableOptions) {
-                datatable.attr('data-options', tAttrs.tableOptions);
+                tableOptions = _.defaults(angular.fromJson(tAttrs.tableOptions), tableOptions);
             }
+            datatable.attr('data-options', angular.toJson(tableOptions));
+
+            ///
 
             if (_.isFunction(builder.list.link)) {
                 return function (scope, elem, attrs, ctrls) {

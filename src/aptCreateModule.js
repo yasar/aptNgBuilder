@@ -196,19 +196,21 @@ function aptCreateModule(builder) {
             var listConfig = {
                 default: true
             };
-            if (builder.create.managerDirective) {
-                listConfig    = _.defaults({
-                    template: '<' + _.kebabCase(builder.getDirectiveName('manager')) + ' />'
-                }, listConfig);
-                var listParam = 'routeConfig.manager';
-                if (_.has(builder, listParam)) {
-                    listConfig = _.defaults(_.get(builder, listParam), listConfig);
-                }
-            } else {
+
+            if (builder.create.listDirective) {
                 listConfig    = _.defaults({
                     template: '<apt-panel><' + _.kebabCase(builder.getDirectiveName('list')) + ' /></apt-panel>'
                 }, listConfig);
                 var listParam = 'routeConfig.list';
+                if (_.has(builder, listParam)) {
+                    listConfig = _.defaults(_.get(builder, listParam), listConfig);
+                }
+            }
+            else if (builder.create.managerDirective) {
+                listConfig    = _.defaults({
+                    template: '<' + _.kebabCase(builder.getDirectiveName('manager')) + ' />'
+                }, listConfig);
+                var listParam = 'routeConfig.manager';
                 if (_.has(builder, listParam)) {
                     listConfig = _.defaults(_.get(builder, listParam), listConfig);
                 }
