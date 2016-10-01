@@ -16,7 +16,8 @@ function aptBuilder(conf) {
         manager : 'manager',
         layout  : 'layout'
     };
-    this.onRun              = null;
+    this.onRun              = null; // function
+    this.onBeforeAddNew     = null; // function, called from within module-service
     this.restRoute          = null;
     this.enableStatusUpdate = false;
     this.authorize          = false;
@@ -100,6 +101,7 @@ function aptBuilder(conf) {
         controller: null
     };
     this.routeConfig = {};
+    this.widgets     = [];
 
     $.extend(true, this, conf);
 }
@@ -352,12 +354,12 @@ aptBuilder.utils = {
         });
     },
     makeDate  : function (item, props) {
-        // return this.makeNativeDate(item, props);
+        return this.makeNativeDate(item, props);
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = item[prop] ? moment(item[prop],'YYYY-MM-DD HH:mm:ss') : moment();
+                item[prop] = item[prop] ? moment(item[prop], 'YYYY-MM-DD HH:mm:ss') : moment();
             }
         });
     },
@@ -368,7 +370,11 @@ aptBuilder.utils = {
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 // item[prop] = new Date(item[prop]);
-                var t      = item[prop].split(/[- :]/);
+                var t = item[prop].split(/[- :]/);
+                if (t[1]) {
+                    // months in javascript starts from 0.
+                    t[1] = (+t[1]) - 1;
+                }
                 item[prop] = eval('new Date(' + t.join(',') + ')');
             }
         });
