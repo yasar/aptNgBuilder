@@ -85,9 +85,18 @@ function aptCreateListDirective(builder) {
                 datatable.attr('data-authorize', builder.domain);
             }
 
+            ///
+
+            var tableOptions = {
+                title: builder.title
+            };
+
             if (tAttrs.tableOptions) {
-                datatable.attr('data-options', tAttrs.tableOptions);
+                tableOptions = _.defaults(angular.fromJson(tAttrs.tableOptions), tableOptions);
             }
+            datatable.attr('data-options', angular.toJson(tableOptions));
+
+            ///
 
             if (_.isFunction(builder.list.link)) {
                 return function (scope, elem, attrs, ctrls) {
@@ -186,8 +195,8 @@ function aptCreateListDirective(builder) {
          * add before yapıp yapmayacagını configure etmek için duzenlendi.
          */
         function addNew() {
-            if (_.isFunction(builder.list.beforeAddNew)) {
-                builder.list.beforeAddNew.call(this, $injector, $scope, builder).then(function () {
+            if (_.isFunction(builder.list.onBeforeAddNew)) {
+                builder.list.onBeforeAddNew.call(this, $injector, $scope, builder).then(function () {
                     proceed();
                 }, function () {
                     // do nothing
@@ -204,9 +213,10 @@ function aptCreateListDirective(builder) {
                 _.defaults(vm.addNewConf, {
                     popup     : true,
                     add_before: builder.form.enableAddBefore,
-                    required  : true,
-                    suffix    : builder.suffix.form,
-                    stay      : true
+                    required  : builder.list.askConfirmBeforeAddNew,
+                    suffix    : builder.getSuffix('form'),
+                    stay      : builder.form.stayOnAdd,
+                    mute      : builder.form.muteOnSubmit
                 });
 
                 return service.addNew({

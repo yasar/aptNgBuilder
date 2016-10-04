@@ -393,7 +393,8 @@ function aptCreateModuleService(builder) {
                 stay       : true,
                 suffix     : builder.suffix.form,
                 confirm    : {
-                    required: false,
+                    // required: false,
+                    required: builder.list.askConfirmBeforeAddNew,
                     title   : gettextCatalog.getString('Confirm'),
                     message : gettextCatalog.getString('Are you sure that you want to continue?')
                 },
@@ -420,8 +421,8 @@ function aptCreateModuleService(builder) {
             }
 
             function processAddBefore() {
-                if (_.has(builder, 'beforeAddNew') && _.isFunction(builder.beforeAddNew)) {
-                    builder.beforeAddNew.call(this, $injector, _builder.$scope, builder).then(function () {
+                if (_.has(builder, 'onBeforeAddNew') && _.isFunction(builder.onBeforeAddNew)) {
+                    builder.onBeforeAddNew.call(this, $injector, _builder.$scope, builder).then(function () {
                         proceed();
                     }, function () {
                         // do nothing
