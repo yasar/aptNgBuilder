@@ -5,12 +5,15 @@
 				<input type="text" ng-model="<<vm>>.keyword" placeholder="{{'search in the list' | translate}}"
 				       class="form-control no-border alpha-brown" />
 				<span class="input-group-addon alpha-brown no-border">{{<<vm>>.dataFiltered.length}}</span>
-                <span class="input-group-btn">
+				<span class="input-group-btn">
 	                <button class="btn btn-default btn-xs ng-animate-disabled" ng-hide="<<vm>>.isLoading"
-	                        type="submit"><i class="icon-search4"></i></button>
+	                        type="submit"><i class="icon-search4 icon-sm"></i></button>
 	                <button class="btn btn-default btn-xs ng-animate-disabled" type="button"
 	                        ng-show="<<vm>>.isLoading"><i class="spinner icon-spinner"></i></button>
 	            </span>
+				<div ng-if="<<vm>>.showMenu">
+					<div data-selector-menu domain="<<domain>>" model-base="<<vm>>"></div>
+				</div>
 			</div>
 		</div>
 	</form>
@@ -20,7 +23,7 @@
 			<tr data-ng-repeat="item in <<vm>>.dataFiltered=(<<vm>>.data|filter:<<vm>>.keyword)"
 			    ng-class="{active: item==<<vm>>.selectItem}">
 				<td ng-class="{'no-border-top': $index==0}" class="p-5">
-
+					
 					<i class="icon-arrow-small-down position-left"
 					   ng-class="{
                    'text-grey-300': item!=<<vm>>.selectItem,
@@ -32,7 +35,7 @@
 			</tbody>
 		</table>
 	</div>
-
+	
 	<div data-ng-if="<<vm>>.isLoading && !<<vm>>.dataFiltered.length">
 		<apt-loading-indicator></apt-loading-indicator>
 	</div>

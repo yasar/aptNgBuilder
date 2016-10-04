@@ -113,8 +113,8 @@ function aptCreateModule(builder) {
             var defaultMenuItem   = {
                 text   : builder.title || builder.Domain,
                 icon   : builder.icon,
+                name   : _.camelCase(builder.domain + '_menu'),
                 segment: 'main.' + (builder.package ? builder.package + '.' : '') + builder.domain,
-                // auth   : ['access_' + _.snakeCase(builder.domain) + '_menu']
                 auth   : [builder.permission('access', 'menu')]
             };
 
@@ -194,21 +194,23 @@ function aptCreateModule(builder) {
             ///
 
             var listConfig = {
-                default : true
+                default: true
             };
-            if(builder.create.managerDirective){
-                listConfig = _.defaults({
-                    template: '<' + _.kebabCase(builder.getDirectiveName('manager')) + ' />'
+
+            if (builder.create.listDirective) {
+                listConfig    = _.defaults({
+                    template: '<apt-panel><' + _.kebabCase(builder.getDirectiveName('list')) + ' /></apt-panel>'
                 }, listConfig);
-                var listParam  = 'routeConfig.manager';
+                var listParam = 'routeConfig.list';
                 if (_.has(builder, listParam)) {
                     listConfig = _.defaults(_.get(builder, listParam), listConfig);
                 }
-            } else {
-                listConfig = _.defaults({
-                    template: '<apt-panel><' + _.kebabCase(builder.getDirectiveName('list')) + ' /></apt-panel>'
+            }
+            else if (builder.create.managerDirective) {
+                listConfig    = _.defaults({
+                    template: '<' + _.kebabCase(builder.getDirectiveName('manager')) + ' />'
                 }, listConfig);
-                var listParam  = 'routeConfig.list';
+                var listParam = 'routeConfig.manager';
                 if (_.has(builder, listParam)) {
                     listConfig = _.defaults(_.get(builder, listParam), listConfig);
                 }
