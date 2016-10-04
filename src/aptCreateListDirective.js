@@ -33,6 +33,10 @@ function aptCreateListDirective(builder) {
             restrict        : 'EA', // ACME
             scope           : {
                 viewType            : '@?',
+                /**
+                 * this is to pass in to service
+                 * so that it can be used in sql query to filter out the data on the server side.
+                 */
                 filter              : '=?',
                 /**
                  * this is required, when adding a new record by clicking the addNew button available for the table.
@@ -44,7 +48,7 @@ function aptCreateListDirective(builder) {
                 addNewConf          : '<',
                 editConf            : '<',
                 data                : '=?',
-                autoload            : '@?',
+                autoload            : '=?',
                 /**
                  * can take true|false
                  */
@@ -156,7 +160,8 @@ function aptCreateListDirective(builder) {
          * if is coming from module>controller then it will be boolean.
          * @type {boolean}
          */
-        vm.autoload = _.isUndefined(vm.autoload) ? true : ((!vm.autoload || vm.autoload == 'false') ? false : true);
+        // vm.autoload = _.isUndefined(vm.autoload) ? true : ((!vm.autoload || vm.autoload == 'false') ? false : true);
+        vm.autoload = vm.autoload || true;
         vm.edit   = editFn;
         vm.delete = deleteFn;
 
