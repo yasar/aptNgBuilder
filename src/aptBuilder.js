@@ -63,6 +63,7 @@ function aptBuilder(conf) {
         onDataLoad     : null, // hook, function
         require        : null, // NOT SURE what it does
         muteOnSubmit   : false, // don't broadcast the events (added, update etc.) on form submitted
+        showHelp       : false,
         stayOnAdd      : true, // good for when in popup
         stayOnUpdate   : true, // good for when in popup
         title          : null,
@@ -140,6 +141,18 @@ aptBuilder.prototype.getPath = function (what) {
         path = (this.package ? this.package : 'modules') + '/' + this.domain;
         if (!_.isUndefined(what)) {
             path += '/directives/' + this.getSuffix(what);
+        }
+    }
+    return path;
+};
+
+aptBuilder.prototype.getHelpPath = function (what) {
+    var path = this.path;
+    if (!path) {
+        // path = (this.package ? this.package : 'modules') + '/_help';
+        path = '/_help';
+        if (!_.isUndefined(what)) {
+            path += '/' + this.package + '.' + this.domain + '.' + this.getSuffix(what) + '.md';
         }
     }
     return path;

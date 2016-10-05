@@ -86,6 +86,11 @@ function aptCreateFormDirective(builder) {
             //     return;
             // }
 
+            if (builder.form.showHelp) {
+                // tElement.find('apt-panel').attr('show-help', builder.domain);
+                tElement.find('apt-panel').attr('show-help', builder.getHelpPath('form'));
+            }
+
             return linkFn;
         }
 
@@ -160,7 +165,22 @@ function aptCreateFormDirective(builder) {
                 ? builder.form.defaults.call(vm, $injector, $scope, builder)
                 : builder.form.defaults;
 
-            _.defaults(vm.form.data, defaults);
+            if (_.get(vm.form.data, '__is_incomplete')) {
+                /**
+                 * if __is_incomplete exists, then data is from server and
+                 * there should be no any missing property,
+                 * then we should use merge to set the defaults.
+                 */
+                _.merge(vm.form.data, defaults);
+            } else {
+                /**
+                 * _.defaults() will only work for missing properties
+                 * if __is_incomplete not exists then
+                 * this is a empty object or form is in edit mode
+                 * so we can use defaults.
+                 */
+                _.defaults(vm.form.data, defaults);
+            }
         }
 
         if (_.isFunction(builder.form.controller)) {
