@@ -33,6 +33,10 @@ function aptCreateListDirective(builder) {
             restrict        : 'EA', // ACME
             scope           : {
                 viewType            : '@?',
+                /**
+                 * this is to pass in to service
+                 * so that it can be used in sql query to filter out the data on the server side.
+                 */
                 filter              : '=?',
                 /**
                  * this is required, when adding a new record by clicking the addNew button available for the table.
@@ -44,7 +48,7 @@ function aptCreateListDirective(builder) {
                 addNewConf          : '<',
                 editConf            : '<',
                 data                : '=?',
-                autoload            : '@?',
+                autoload            : '=?',
                 /**
                  * can take true|false
                  */
@@ -156,7 +160,8 @@ function aptCreateListDirective(builder) {
          * if is coming from module>controller then it will be boolean.
          * @type {boolean}
          */
-        vm.autoload = _.isUndefined(vm.autoload) ? true : ((!vm.autoload || vm.autoload == 'false') ? false : true);
+        // vm.autoload = _.isUndefined(vm.autoload) ? true : ((!vm.autoload || vm.autoload == 'false') ? false : true);
+        vm.autoload = vm.autoload || true;
         vm.edit   = editFn;
         vm.delete = deleteFn;
 
@@ -235,7 +240,7 @@ function aptCreateListDirective(builder) {
 
         function reloadFn() {
             var proceed = true;
-            if (angular.isFunction(builder.list.onBeforeReload)) {
+            if (_.isFunction(builder.list.onBeforeReload)) {
                 proceed = builder.list.onBeforeReload.call(this, $injector, vm, $scope);
             }
 
@@ -246,11 +251,11 @@ function aptCreateListDirective(builder) {
 
         function getRowMenu() {
             var rowMenu;
-            if (angular.isFunction(builder.list.rowMenu)) {
+            if (_.isFunction(builder.list.rowMenu)) {
                 rowMenu = builder.list.rowMenu.call(this, $injector, vm, $scope);
-            } else if (angular.isFunction(builder.rowMenu)) {
+            } else if (_.isFunction(builder.rowMenu)) {
                 rowMenu = builder.rowMenu.call(this, $injector, vm, $scope);
-            } else if (angular.isObject(builder.rowMenu)) {
+            } else if (_.isObject(builder.rowMenu)) {
                 rowMenu = builder.rowMenu;
             } else {
                 rowMenu = getDefaultRowMenu(vm, aptMenu);
@@ -259,7 +264,7 @@ function aptCreateListDirective(builder) {
         }
 
         function selectItemFn(item) {
-            if (angular.isFunction(vm.onSelect)) {
+            if (_.isFunction(vm.onSelect)) {
                 vm.onSelect({item: item});
             }
             vm.selectedItem = item;

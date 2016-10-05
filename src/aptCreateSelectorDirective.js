@@ -71,7 +71,8 @@ function aptCreateSelectorDirective(builder) {
                  * when subscribed to `add`, the selector will populate the newly added records
                  * this will listen to event fired at moduleService
                  */
-                subscribeAdd     : '<?' // true|false, default: false
+                subscribeAdd     : '<?', // true|false, default: false
+                helpText         : '@'
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
@@ -82,10 +83,11 @@ function aptCreateSelectorDirective(builder) {
         };
 
         function compileFn(element, attrs) {
-            var attrName = _.kebabCase(builder.getDirectiveName('selector'));
+            var attrName = builder.getDirectiveName('selector');
             element.removeAttr(attrName);
             element.removeAttr('data-' + attrName);
             delete attrs[attrName];
+            delete attrs.$attr[attrName];
 
             return {
                 post: linkFn
@@ -93,7 +95,7 @@ function aptCreateSelectorDirective(builder) {
         }
 
         function linkFn($scope, element, attrs, ctrls) {
-            var selectorCtrl = ctrls[0];
+            var vm = ctrls[0];
             // var ngModelController = null;
             // if (ctrls.length > 1) {
             //     ngModelController = ctrls[1];
@@ -102,7 +104,6 @@ function aptCreateSelectorDirective(builder) {
             var $compile       = $injector.get('$compile');
             var tpl;
             var found          = false;
-            var vm             = $scope[builder.getControllerAsName('selector')];
 
             ///
 
@@ -135,7 +136,7 @@ function aptCreateSelectorDirective(builder) {
 
             tpl = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
             tpl = tpl.replace(/<<domain>>/g, builder.domain);
-            tpl = tpl.replace(/<<multiple>>/g, (selectorCtrl.isMultiple ? 'multiple' : ''));
+            tpl = tpl.replace(/<<multiple>>/g, (vm.isMultiple ? 'multiple' : ''));
 
             element.contents().remove();
             // element.append($compile(tpl)($scope));
@@ -246,6 +247,11 @@ function aptCreateSelectorDirective(builder) {
         vm.placeholder         = vm.placeholder || defaultPlaceholder;
         if (vm.placeholder != defaultPlaceholder && vm.translate) {
             vm.placeholder = gettextCatalog.getString(vm.placeholder);
+        }
+
+        vm.x_helpText = vm.helpText;
+        if (vm.helpText && vm.translate) {
+            vm.x_helpText = gettextCatalog.getString(vm.helpText);
         }
 
         if (_.get(builder, 'disable.addNew') === true) {
