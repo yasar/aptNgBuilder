@@ -86,6 +86,11 @@ function aptCreateFormDirective(builder) {
             //     return;
             // }
 
+            if (builder.form.showHelp) {
+                // tElement.find('apt-panel').attr('show-help', builder.domain);
+                tElement.find('apt-panel').attr('show-help', builder.getHelpPath('form'));
+            }
+
             return linkFn;
         }
 
