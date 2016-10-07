@@ -48,7 +48,7 @@ function aptCreateListDirective(builder) {
                 addNewConf          : '<',
                 editConf            : '<',
                 data                : '=?',
-                autoload            : '=?',
+                autoload            : '<?',
                 /**
                  * can take true|false
                  */
@@ -160,8 +160,7 @@ function aptCreateListDirective(builder) {
          * if is coming from module>controller then it will be boolean.
          * @type {boolean}
          */
-        // vm.autoload = _.isUndefined(vm.autoload) ? true : ((!vm.autoload || vm.autoload == 'false') ? false : true);
-        vm.autoload = vm.autoload || true;
+        vm.autoload = _.isUndefined(vm.autoload) ? true : ((!vm.autoload || vm.autoload == 'false') ? false : true);
         vm.edit   = editFn;
         vm.delete = deleteFn;
 
