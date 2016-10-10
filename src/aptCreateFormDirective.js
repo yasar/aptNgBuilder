@@ -73,8 +73,9 @@ function aptCreateFormDirective(builder) {
         };
 
 
-        if (builder.form.require) {
-            _.set(directive, 'require', builder.form.require);
+        if (_.has(builder, 'form.require') && !_.isNull(_.get(builder, 'form.require'))) {
+            // _.set(directive, 'require', angular.toJson(_.get(builder, 'form.require')));
+            _.set(directive, 'require', _.get(builder, 'form.require'));
         }
 
         return directive;
