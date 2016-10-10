@@ -25,9 +25,10 @@ function aptCreateSelectorDirective(builder) {
     }
 
     function aptSelectorDirective(builder, $injector) {
+        aptCreateSelectorDirective.ctr++;
         return {
             restrict        : 'EA', // ACME
-            replace         : true,
+            replace         : false,
             scope           : {},
             bindToController: {
                 model            : '=?ngModel',
@@ -79,7 +80,7 @@ function aptCreateSelectorDirective(builder) {
             // link            : linkFn,
             compile         : compileFn,
             // require         : [builder.getDirectiveName('selector'), '?ngModel']
-            require         : [builder.getDirectiveName('selector')]
+            require         : [builder.getDirectiveName('selector'), '?ngModel', '^^?form']
         };
 
         function compileFn(element, attrs) {
@@ -95,15 +96,15 @@ function aptCreateSelectorDirective(builder) {
         }
 
         function linkFn($scope, element, attrs, ctrls) {
-            var vm = ctrls[0];
-            // var ngModelController = null;
-            // if (ctrls.length > 1) {
-            //     ngModelController = ctrls[1];
-            // }
-            var $templateCache = $injector.get('$templateCache');
-            var $compile       = $injector.get('$compile');
+            var vm                 = ctrls[0];
+            var $ngModelController = ctrls[1];
+            var $formController    = ctrls[2];
+            var $templateCache     = $injector.get('$templateCache');
+            var $compile           = $injector.get('$compile');
             var tpl;
-            var found          = false;
+            var found              = false;
+
+            vm.$ngModelController = $ngModelController;
 
             ///
 
@@ -150,7 +151,25 @@ function aptCreateSelectorDirective(builder) {
                 $tpl.find('[ng-model]').attr('required', attrs.required);
             }
 
-            element.replaceWith($compile($tpl)($scope));
+            var compiledElement = $compile($tpl)($scope)
+            // element.replaceWith(compiledElement);
+            element.append(compiledElement);
+
+            if ($formController) {
+                if (compiledElement.is('ng-model')) {
+                    addControl(compiledElement);
+                } else {
+                    _.map(compiledElement.find('[ng-model]'), addControl);
+                }
+
+                function addControl(formElement) {
+                    try {
+                        var $ngModelController = $(formElement).data().$ngModelController;
+                        $formController.$addControl($ngModelController);
+                    } catch (e) {
+                    }
+                }
+            }
 
 
             ///
@@ -175,11 +194,11 @@ function aptCreateSelectorDirective(builder) {
 
             ///
 
-            // ngModelController.$render = function() {
-            //     iElement.find('div').text(ngModelController.$viewValue);
+            // $ngModelController.$render = function() {
+            //     iElement.find('div').text($ngModelController.$viewValue);
             // };
 
-            // selectorCtrl.setNgModelController(ngModelController);
+            // selectorCtrl.setNgModelController($ngModelController);
 
         }
     }
@@ -204,7 +223,7 @@ function aptCreateSelectorDirective(builder) {
         var filterObject            = {};
         var isModelValueInitialized = false;
 
-        // var ngModelController       = null;
+        vm.$ngModelController = null;
         //
         // vm.setNgModelController = setNgModelController;
 
@@ -232,6 +251,7 @@ function aptCreateSelectorDirective(builder) {
         vm.reload          = reloadFn;
         vm.getFilterObject = getFilterObject;
 
+        vm.ctr          = aptCreateSelectorDirective.ctr;
         vm.readonlyData = {};
         vm.data         = [];
         // vm.data         = service.getRepo();
@@ -320,10 +340,10 @@ function aptCreateSelectorDirective(builder) {
         }
 
         // function setNgModelController(ctrl) {
-        //     ngModelController = ctrl;
+        //     $ngModelController = ctrl;
         //
-        //     ngModelController.$render = function () {
-        //         vm.model = ngModelController.$viewValue;
+        //     $ngModelController.$render = function () {
+        //         vm.model = $ngModelController.$viewValue;
         //     };
         // }
 
@@ -429,9 +449,14 @@ function aptCreateSelectorDirective(builder) {
                  */
                 if (value !== null) {
                     vm.model = _selectedItem[builder.getPrimaryKey()];
-                    // ngModelController.$setViewValue(vm.model);
+
                 } else {
                     vm.model = null;
+                }
+
+                // todo: make sure this does not break anything
+                if (vm.$ngModelController) {
+                    vm.$ngModelController.$setViewValue(vm.model);
                 }
 
                 /**
@@ -666,3 +691,4 @@ function aptCreateSelectorDirective(builder) {
 
     }
 }
+aptCreateSelectorDirective.ctr = 0;

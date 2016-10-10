@@ -74,7 +74,7 @@ function aptBuilder(conf) {
         controller : null //for callback only
     };
     this.list        = {
-        askConfirmBeforeAddNew: true,
+        askConfirmBeforeAddNew: false,
         controller            : null,
         link                  : null,
         onBeforeAddNew        : null,
