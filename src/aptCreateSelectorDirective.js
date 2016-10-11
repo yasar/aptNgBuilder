@@ -129,7 +129,7 @@ function aptCreateSelectorDirective(builder) {
             ///
 
             if (!found) {
-                console.error('Template can not be found: `' +tpl + '`');
+                console.error('Template can not be found: `' + tpl + '`');
                 return;
             }
 
@@ -289,7 +289,7 @@ function aptCreateSelectorDirective(builder) {
         }
 
 
-        if (!vm.filterRequired || vm.loadIf) {
+        if ((!_.isUndefined(vm.filterRequired) && !vm.filterRequired) || vm.loadIf) {
             /**
              * load repo
              */
@@ -578,7 +578,7 @@ function aptCreateSelectorDirective(builder) {
                 return;
             }
 
-            if (vm.keyword == ''
+            if ((vm.keyword == '' || _.isNull(vm.keyword) || _.isUndefined(vm.keyword))
                 && filterObject.hasOwnProperty(builder.getPrimaryKey())
                 && _selectedItem
                 && _selectedItem.hasOwnProperty(builder.getPrimaryKey())
@@ -591,8 +591,10 @@ function aptCreateSelectorDirective(builder) {
 
             // service.loadRepo(getCombinedFilter());
 
-            getModelService()
-                .getList(getCombinedFilter())
+            var modelService   = getModelService();
+            var combinedFilter = getCombinedFilter();
+            modelService
+                .getList(combinedFilter)
                 .then(
                     function (data) {
                         aptUtils.emptyAndMerge(vm.data, data);
