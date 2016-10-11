@@ -77,9 +77,7 @@ function aptCreateSelectorDirective(builder) {
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
-            // link            : linkFn,
             compile         : compileFn,
-            // require         : [builder.getDirectiveName('selector'), '?ngModel']
             require         : [builder.getDirectiveName('selector'), '?ngModel', '^^?form']
         };
 
