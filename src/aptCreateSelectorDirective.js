@@ -131,7 +131,7 @@ function aptCreateSelectorDirective(builder) {
             ///
 
             if (!found) {
-                console.error('Template can not be found.');
+                console.error('Template can not be found: `' +tpl + '`');
                 return;
             }
 
