@@ -1,43 +1,21 @@
 <div>
-	<form ng-submit="<<vm>>.search(<<vm>>.keyword)">
-		<div class="heading-divided no-padding no-margin">
-			<div class="input-group input-group-xs">
-				<input type="text" ng-model="<<vm>>.keyword" placeholder="{{'search in the list' | translate}}"
-				       class="form-control no-border alpha-brown" />
-				<span class="input-group-addon alpha-brown no-border">{{<<vm>>.dataFiltered.length}}</span>
-				<span class="input-group-btn">
-	                <button class="btn btn-default ng-animate-disabled" ng-hide="<<vm>>.isLoading"
-	                        type="submit"><i class="icon-search4"></i></button>
-	                <button class="btn btn-default ng-animate-disabled" type="button"
-	                        ng-show="<<vm>>.isLoading"><i class="spinner icon-spinner"></i></button>
-	            </span>
-			</div>
-		</div>
-	</form>
-	<div class="{{<<vm>>.listClass}}">
+	<ng-include src="'aptNgBuilder/templates/inc/selector.header.tpl.html'"></ng-include>
+	<div class="{{this[builder.vm('selector')].listClass}}">
 		<table class="table table-xs no-margin">
 			<tbody>
-			<tr data-ng-repeat="item in <<vm>>.dataFiltered=(<<vm>>.data|filter:<<vm>>.keyword)">
+			<tr data-ng-repeat="item in this[builder.vm('selector')].dataFiltered=(this[builder.vm('selector')].data|filter:this[builder.vm('selector')].keyword) track by $index"
+			    ng-class="{active: item==this[builder.vm('selector')].selectItem}">
 				<td ng-class="{'no-border-top': $index==0}" class="p-5 text-size-mini">
-					<a href data-ng-click="<<vm>>.selectedItem(item)">{{item._selectorTitle}}</a></td>
+					<a href data-ng-click="this[builder.vm('selector')].selectedItem(item)">{{item._selectorTitle}}</a>
+				</td>
 				<td ng-class="{'no-border-top': $index==0}" class="no-padding text-right">
 					<a href
 					   class="btn btn-xs btn-icon btn-link"
-					   data-ng-click="<<vm>>.onClick({data:item})"><i icon="delete"></i></a>
+					   data-ng-click="this[builder.vm('selector')].onClick({data:item})"><i icon="delete"></i></a>
 				</td>
 			</tr>
 			</tbody>
 		</table>
 	</div>
-	
-	<div data-ng-if="<<vm>>.isLoading && !<<vm>>.dataFiltered.length">
-		<apt-loading-indicator></apt-loading-indicator>
-	</div>
-	<div data-ng-if="!<<vm>>.isLoading && !<<vm>>.dataFiltered.length" class="well no-border">
-		<div class="text-muted">
-			<h2 translate>No results</h2>
-			<p translate>There is no any result found.</p>
-		</div>
-		<apt-inline-help translate>`list in search` only looks in the current listing as you type in, in order to perform a full search you should press `enter` key.</apt-inline-help>
-	</div>
+	<ng-include src="'aptNgBuilder/templates/inc/selector.generic.tpl.html'"></ng-include>
 </div>

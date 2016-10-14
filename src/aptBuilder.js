@@ -174,6 +174,10 @@ aptBuilder.prototype.getControllerAsName = function (type) {
     return 'vm' + _.upperFirst(this.domain) + _.upperFirst(this.getSuffix(type));
 };
 aptBuilder.prototype.vm                  = function (type, prop) {
+    if (_.isUndefined(prop)) {
+        return this.getControllerAsName(type);
+    }
+
     return this.getControllerAsName(type) + '.' + prop;
 };
 aptBuilder.prototype.getSuffix           = function (type) {
@@ -367,7 +371,16 @@ aptBuilder.utils = {
         });
     },
     makeDate  : function (item, props) {
-        return this.makeNativeDate(item, props);
+        /**
+         * dtr edit form expects moment date.
+         * mast selector/date_installation date format expects native date object.
+         * so keep it moment date.
+         * we have to find a common base for every case scenarios.
+         *
+         *
+         * // return this.makeNativeDate(item, props);
+         */
+
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -377,7 +390,7 @@ aptBuilder.utils = {
         });
     },
 
-    makeMoment  : function (item, props) {
+    makeMoment: function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {

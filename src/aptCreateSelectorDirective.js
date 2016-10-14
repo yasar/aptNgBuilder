@@ -33,8 +33,8 @@ function aptCreateSelectorDirective(builder) {
             bindToController: {
                 model            : '=?ngModel',
                 filterObject     : '<?',
-                filterGroup      : '@?',
-                filterClass      : '@?',
+                // filterGroup      : '@?',
+                // filterClass      : '@?',
                 filterRequired   : '<?',
                 loadIf           : '<?',
                 selectItem       : '=?',
@@ -103,6 +103,7 @@ function aptCreateSelectorDirective(builder) {
             var found              = false;
 
             vm.$ngModelController = $ngModelController;
+            vm.builder            = builder;
 
             ///
 
@@ -289,7 +290,8 @@ function aptCreateSelectorDirective(builder) {
         }
 
 
-        if ((!_.isUndefined(vm.filterRequired) && !vm.filterRequired) || vm.loadIf) {
+        // if ((!_.isUndefined(vm.filterRequired) && !vm.filterRequired) || vm.loadIf) {
+        if (_.isUndefined(vm.filterRequired) || !vm.filterRequired || vm.loadIf) {
             /**
              * load repo
              */
@@ -346,7 +348,15 @@ function aptCreateSelectorDirective(builder) {
         // }
 
         function initModelValue() {
-            if (vm.model) {
+
+            /**
+             * suppose we have set a variable having initial value of `null` for vm.model,
+             * checking model against `if(vm.model)` will not pass through.
+             *
+             * we should check if it is defined or not.
+             */
+            // if (vm.model) {
+            if (!_.isUndefined(vm.model)) {
 
                 var filterModel = {};
                 _.set(filterModel, builder.getPrimaryKey(), vm.model);
