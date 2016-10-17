@@ -28,7 +28,13 @@ function aptCreateSelectorDirective(builder) {
         aptCreateSelectorDirective.ctr++;
         return {
             restrict        : 'EA', // ACME
-            replace         : false,
+            /**
+             * when used with apt-field and required
+             * the required attribute stays at apt-xx-selector.
+             * it should be at the template element itself.
+             * so, we have to set replace:true.
+             */
+            replace         : true,
             scope           : {},
             bindToController: {
                 model            : '=?ngModel',
@@ -101,6 +107,7 @@ function aptCreateSelectorDirective(builder) {
             var $compile           = $injector.get('$compile');
             var tpl;
             var found              = false;
+            var findNgModelStr     = '[data-ng-model],[ng-model]';
 
             vm.$ngModelController = $ngModelController;
             vm.builder            = builder;
@@ -147,7 +154,7 @@ function aptCreateSelectorDirective(builder) {
             // also note that, we are looking for the element having ng-model as
             // it is the one obligated to do the validation
             if (attrs.required) {
-                $tpl.find('[ng-model]').attr('required', attrs.required);
+                $tpl.find(findNgModelStr).attr('required', attrs.required);
             }
 
             var compiledElement = $compile($tpl)($scope)
@@ -155,10 +162,10 @@ function aptCreateSelectorDirective(builder) {
             element.append(compiledElement);
 
             if ($formController) {
-                if (compiledElement.is('ng-model')) {
+                if (compiledElement.is('ng-model') || compiledElement.is('data-ng-model')) {
                     addControl(compiledElement);
                 } else {
-                    _.map(compiledElement.find('[ng-model]'), addControl);
+                    _.map(compiledElement.find(findNgModelStr), addControl);
                 }
 
                 function addControl(formElement) {
@@ -190,6 +197,7 @@ function aptCreateSelectorDirective(builder) {
                 element.find('select, .list-group, .input-group').attr('style', attrs.style);
                 element.removeAttr('style');
             }
+
 
             ///
 
