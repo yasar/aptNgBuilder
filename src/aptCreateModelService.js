@@ -76,6 +76,9 @@ function aptCreateModelService(builder) {
                                 });
                         }
 
+                        /**
+                         * mastFoundation,foundationBuilder uses transformer
+                         */
                         if (angular.isFunction(builder.model.transformer)) {
                             RestangularConfigurer.addElementTransformer(builder.getRestRoute(),
                                 function (restObject) {

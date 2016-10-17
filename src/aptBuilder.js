@@ -45,7 +45,8 @@ function aptBuilder(conf) {
         normalize           : null,
         restize             : null,
         requestInterceptors : null,
-        responseInterceptors: null
+        responseInterceptors: null,
+        transformer         : null
     };
     this.service     = {
         methods: {},
@@ -91,7 +92,7 @@ function aptBuilder(conf) {
         /**
          * we can configure the individual items with the configuration object
          * or set to `true` to enable it with default settings
-         * ot set to `false` to disable it completely
+         * or set to `false` to disable it completely
          */
         showMenu  : {
             addNew: true,
@@ -186,8 +187,48 @@ aptBuilder.prototype.getSuffix           = function (type) {
     return _.has(this, _private) ? _.get(this, _private) : (_.has(this, _generic) ? _.get(this, _generic) : type);
     // return _.has(this.suffix, type) ? _.get(this.suffix, type) : type;
 };
-aptBuilder.prototype.permission          = function (right, type) {
-    return right + '_' + _.snakeCase(this.domain) + '_' + type;
+/**
+ * ex:
+ *  mastBuilder.permission('a') => "access_mast_menu"
+ *  mastBuilder.permission('a','e') => "access_mast_menu"
+ *  mastBuilder.permission('r') => "read_mast_module"
+ *  mastBuilder.permission('r','o) => "read_mast_module"
+ *  mastBuilder.permission('a','s','approve-cancel') => "read_mast#approve-cancel_module"
+ *
+ * @param right
+ * @param type
+ * @param section
+ * @returns {string}
+ */
+aptBuilder.prototype.permission = function (right, type, section) {
+    if (right.length == 1) {
+        if (right == 'a') right = 'access';
+        if (right == 'c') right = 'create';
+        if (right == 'r') right = 'delete';
+        if (right == 'u') right = 'update';
+        if (right == 'd') right = 'delete';
+    }
+
+    var permission = [right];
+
+    if (!type) {
+        type = (right == 'access' ? 'menu' : 'module');
+    } else if (type.length == 1) {
+        if (type == 'e') type = 'menu';
+        if (type == 'o') type = 'module';
+        if (type == 's') type = 'section';
+    }
+
+    if (type == 'section') {
+        permission.push(_.snakeCase(this.domain) + '#' + section);
+    } else {
+        permission.push(_.snakeCase(this.domain));
+    }
+
+    permission.push(type);
+
+    // return right + '_' + _.snakeCase(this.domain) + '_' + type;
+    return permission.join('_');
 };
 
 /**
