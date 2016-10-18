@@ -279,12 +279,29 @@ aptBuilder.prototype.url = function (part) {
     return '/' + arr.join('/');
 };
 
-aptBuilder.prototype.getLayoutTemplate = function () {
+aptBuilder.prototype.url2 = function (part) {
+    if (_.isUndefined(this.parts)) {
+        this.parts = [_.kebabCase(this.domain)];
+    }
+    if (part) {
+        if (_.isNumber(part)) {
+            return this.parts[part - 1];
+        }
+        this.parts.push(part);
+    }
+    return '/' + this.parts.join('/');
+};
+
+aptBuilder.prototype.getLayoutTemplate = function (n) {
     if (this.layout.template) {
         return this.layout.template;
     }
 
-    // view-segment is 3 when the route is like: main.<package>.<module>
+    if (_.isUndefined(n)) {
+        // view-segment is 3 when the route is like: main.<package>.<module>
+        n = 3;
+    }
+
     return '<div app-view-segment="3"></div>';
 };
 
