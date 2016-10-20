@@ -111,10 +111,15 @@ function aptCreateModule(builder) {
             var NotifyingService  = $injector.get('NotifyingService');
             var defaultTargetMenu = 'sideMenu';
             var defaultMenuItem   = {
-                text   : builder.title || builder.Domain,
-                icon   : builder.icon,
-                name   : _.camelCase(builder.domain + '_menu'),
-                segment: 'main.' + (builder.package ? builder.package + '.' : '') + builder.domain,
+                text: builder.title || builder.Domain,
+                icon: builder.icon,
+                name: _.camelCase(builder.domain + '_menu'),
+                // segment: 'main.' + (builder.package ? builder.package + '.' : '') + builder.domain,
+
+                /**
+                 * true will force it to check for defaultChild if segment is abstract
+                 */
+                segment: builder.segment(true),
                 auth   : [builder.permission('access', 'menu')]
             };
 
@@ -178,71 +183,81 @@ function aptCreateModule(builder) {
             return;
         }
 
-        app.config(routeLoader);
+        app.config(routeConfig);
 
-        routeLoader.$inject = ['$injector'];
-        function routeLoader($injector) {
-            var $routeSegmentProvider = $injector.get('$routeSegmentProvider');
+        routeConfig.$inject = ['$injector'];
+        function routeConfig($injector) {
+            var $stateProvider     = $injector.get('$stateProvider');
+            var $urlRouterProvider = $injector.get('$urlRouterProvider');
 
-            ///
+            /// Layout State
 
-            var layoutConfig = {template: builder.getLayoutTemplate()};
-            if (builder.create.layoutController) {
-                layoutConfig.controller = builder.getControllerName('layout');
-            }
-
-            ///
-
-            var listConfig = {
-                default: true
+            var layoutState = {
+                name    : builder.segment(),
+                url     : builder.url(),
+                template: builder.getLayoutTemplate(),
+                abstract: _.get(builder, 'routeConfig.layout.abstract')
             };
 
+            if (builder.create.layoutController) {
+                layoutState.controller = builder.getControllerName('layout');
+            }
+            $stateProvider.state(layoutState);
+
+            // if (_.has(builder, 'routeConfig.layout.defaultChild')) {
+            //     var _defaultChild = _.get(builder, 'routeConfig.layout.defaultChild');
+            //     var _url          = builder.url();
+            //     $urlRouterProvider.when(_url, _url + '/' + _.trim(_defaultChild, '/'));
+            // }
+
+            ///
+
+            var _name = null;
+
             if (builder.create.listDirective) {
-                listConfig    = _.defaults({
-                    template: '<apt-panel><' + _.kebabCase(builder.getDirectiveName('list')) + ' /></apt-panel>'
-                }, listConfig);
-                var listParam = 'routeConfig.list';
-                if (_.has(builder, listParam)) {
-                    listConfig = _.defaults(_.get(builder, listParam), listConfig);
-                }
+                _name = 'list';
             }
             else if (builder.create.managerDirective) {
-                listConfig    = _.defaults({
-                    template: '<' + _.kebabCase(builder.getDirectiveName('manager')) + ' />'
-                }, listConfig);
-                var listParam = 'routeConfig.manager';
-                if (_.has(builder, listParam)) {
-                    listConfig = _.defaults(_.get(builder, listParam), listConfig);
-                }
+                _name = 'manager';
+            }
+
+            if (_name) {
+                var state = _.defaults(
+                    /**
+                     * if there is a configuration available, take it
+                     * and default to with provided object (2nd parameter)
+                     * remember, first object will be preserved and only missing ones will be used from the second one.
+                     */
+                    _.get(builder, 'routeConfig.' + _name),
+
+                    /**
+                     * the default configuration for this state
+                     */
+                    {
+                        name    : builder.segment(_name),
+                        url     : _.get(builder, 'routeConfig.layout.abstract') &&
+                                  _.get(builder, 'routeConfig.layout.defaultChild') == _name ? '' : builder.url(_name),
+                        template: '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>',
+                        access  : {
+                            permission: [builder.permission('read', 'module')]
+                        },
+                        label   : _.upperFirst(_name),
+                    }
+                );
+                $stateProvider.state(state);
             }
 
             ///
 
-            $routeSegmentProvider
-                .when(builder.url(), builder.segment(), {
-                    label: builder.title,
-                })
-                .when(builder.url('list'), builder.segment('list'), {
-                    access: {
-                        permission: [builder.permission('read', 'module')]
-                    },
-                    label : 'List',
-                    parent: '/'
-                })
+            if (_.has(builder, 'routeConfig.others')) {
+                var others = _.get(builder, 'routeConfig.others');
+                if (!_.isArray(others)) {
+                    console.error('routeConfig.others must be an array. Domain: ' + builder.domain);
+                } else {
+                    _.forEach(others, $stateProvider.state);
+                }
+            }
 
-                // start with: main
-                .within(builder.segment(1))
-
-                // package: app999
-                .within(builder.segment(2))
-
-                // module: staff
-                .segment(builder.segment(3), layoutConfig)
-
-                // section: staff.list
-                .within()
-
-                .segment('list', listConfig);
         }
     }
 }

@@ -70,6 +70,7 @@ function aptBuilder(conf) {
         title          : null,
     };
     this.layout      = {
+        abstract   : true,
         templConfig: {},
         template   : null,
         controller : null //for callback only
@@ -102,7 +103,10 @@ function aptBuilder(conf) {
         },
         controller: null
     };
-    this.routeConfig = {};
+    this.routeConfig = {
+        list   : {},
+        manager: {}
+    };
     this.widgets     = [];
 
     $.extend(true, this, conf);
@@ -249,11 +253,21 @@ aptBuilder.prototype.permission = function (right, type, section) {
 aptBuilder.prototype.segment = function (part) {
     if (_.isUndefined(this.segments)) {
         // this.segments = ['main', this.package, _.snakeCase(this.domain)];
-        this.segments = ['main', this.package, _.camelCase(this.domain)];
+        this.segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
+            // package might be empty in some cases, and we don't want them.
+            // this.segments will only contain items that we return true for.
+            return s;
+        });
     }
 
     if (_.isNumber(part)) {
         return this.segments[part - 1];
+    }
+
+    if (part === true
+        && _.get(this, 'routeConfig.layout.abstract')
+        && _.has(this, 'routeConfig.layout.defaultChild')) {
+        part = _.get(this, 'routeConfig.layout.defaultChild');
     }
 
     return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
@@ -302,7 +316,8 @@ aptBuilder.prototype.getLayoutTemplate = function (n) {
         n = 3;
     }
 
-    return '<div app-view-segment="3"></div>';
+    // return '<div app-view-segment="3"></div>';
+    return '<div ui-view></div>';
 };
 
 aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
