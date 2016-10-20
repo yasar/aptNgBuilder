@@ -1,0 +1,8 @@
+syntax: glob
+*.orig
+*.old
+*.bak?
+*.iml
+bin
+build
+node_modules

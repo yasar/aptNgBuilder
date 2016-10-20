@@ -1,0 +1,24 @@
+<div>
+	<ng-include src="'aptNgBuilder/templates/inc/selector.header.tpl.html'"></ng-include>
+	
+	<div class="{{<<vm>>.listClass}}">
+		<table class="table table-xs no-margin">
+			<tbody>
+			<tr data-ng-repeat="item in <<vm>>.dataFiltered=(<<vm>>.data|filter:<<vm>>.keyword)"
+			    ng-class="{active: item==<<vm>>.selectItem}">
+				<td ng-class="{'no-border-top': $index==0}" class="p-5">
+					
+					<i class="icon-arrow-small-down position-left"
+					   ng-class="{
+                   'text-grey-300': item!=<<vm>>.selectItem,
+                   'fa-rotate-270 text-primary-300': item==<<vm>>.selectItem
+                   }"></i>
+					<span><a href data-ng-click="<<vm>>.selectedItem(item)">{{item._selectorTitle}}</a></span>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<ng-include src="'aptNgBuilder/templates/inc/selector.generic.tpl.html'"></ng-include>
+</div>
