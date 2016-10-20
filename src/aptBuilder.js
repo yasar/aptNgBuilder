@@ -250,6 +250,42 @@ aptBuilder.prototype.permission = function (right, type, section) {
  * >> x = 'mast';
  *
  */
+aptBuilder.prototype.segmentx = function (part) {
+    if (_.isUndefined(this.segments)) {
+        // this.segments = ['main', this.package, _.snakeCase(this.domain)];
+        this.segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
+            // package might be empty in some cases, and we don't want them.
+            // this.segments will only contain items that we return true for.
+            return s;
+        });
+    }
+
+    var prefix  = this.segments.join('.');
+    var segment = findSegment(part, this.routeConfig);
+
+    if (_.isUndefined(segment)) {
+        return prefix + '.' + part;
+    }
+
+    if (segment.abstract && segment.defaultChild) {
+        return segment.name + '.' + segment.defaultChild;
+    }
+
+    return segment.name;
+
+    function findSegment(part, routeConfig) {
+        var _search  = prefix + (_.isUndefined(part) ? '' : ('.' + part));
+        var _segment = undefined; //because _.find() will return undefined if not found.
+
+        _segment = _.find(routeConfig, {name: _search});
+
+        if (_.isUndefined(_segment) && _.has(routeConfig, 'others')) {
+            _segment = _.find(routeConfig.others, {name: _search});
+        }
+
+        return _segment;
+    }
+};
 aptBuilder.prototype.segment = function (part) {
     if (_.isUndefined(this.segments)) {
         // this.segments = ['main', this.package, _.snakeCase(this.domain)];
@@ -264,10 +300,22 @@ aptBuilder.prototype.segment = function (part) {
         return this.segments[part - 1];
     }
 
-    if (part === true
-        && _.get(this, 'routeConfig.layout.abstract')
-        && _.has(this, 'routeConfig.layout.defaultChild')) {
-        part = _.get(this, 'routeConfig.layout.defaultChild');
+    /**
+     * when part=true, it is used as flag actually.
+     * if the condition is not satisfied (abstract and childState)
+     * then we should reset this flag to undefined.
+     */
+    if (part === true) {
+        part = _.get(this, 'routeConfig.layout.abstract') && _.has(this, 'routeConfig.layout.defaultChild')
+            ? _.get(this, 'routeConfig.layout.defaultChild')
+            : undefined;
+    }
+
+    // return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
+
+    var segment = this.findSegment(part);
+    if (segment) {
+        return segment.redirectTo ? segment.redirectTo.name : segment.name;
     }
 
     return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
@@ -281,7 +329,70 @@ aptBuilder.prototype.segment = function (part) {
 //     return this.segments.join('.');
 // };
 
+aptBuilder.prototype.fixSegments = function (routes) {
+    var _this = this;
+
+    if (_.isUndefined(this.segmentRetryQ)) {
+        this.segmentRetryQ = [];
+    }
+
+    if (_.isUndefined(routes)) {
+        routes = this.routeConfig;
+    }
+
+    _.forEach(routes, function (config) {
+        if (_.isArray(config)) {
+            _.forEach(config, function (value) {
+                _this.segmentRetryQ.push(value);
+            });
+            return;
+        }
+
+        if (config.abstract && config.defaultChild) {
+            var newSegment = _this.findSegment(config.defaultChild, config);
+            if (newSegment) {
+                config.redirectTo = newSegment;
+                // config.name = newSegment.name;
+            }
+        }
+    });
+
+    if (this.segmentRetryQ.length) {
+        var next = _.pullAt(this.segmentRetryQ, 0);
+        this.fixSegments(next);
+    }
+};
+
+aptBuilder.prototype.findSegment = function (part, referenceSegment) {
+    var segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
+        // package might be empty in some cases, and we don't want them.
+        // this.segments will only contain items that we return true for.
+        return s;
+    });
+    var prefix   = referenceSegment && referenceSegment.name ? referenceSegment.name : segments.join('.');
+
+    var _search  = prefix + (_.isUndefined(part) ? '' : ('.' + part));
+    var _segment = undefined; //because _.find() will return undefined if not found.
+
+    // _segment = _.find(routeConfig, {name: _search});
+    _segment = _.find(this.routeConfig, {name: _search});
+
+    if (_.isUndefined(_segment) && _.has(this.routeConfig, 'others')) {
+        _segment = _.find(this.routeConfig.others, {name: _search});
+    }
+
+    return _segment;
+};
+
 aptBuilder.prototype.url = function (part) {
+    var path = part;
+    if (_.isUndefined(part)) {
+        path = _.kebabCase(this.domain);
+    }
+    return '/' + _.trim(path, '/');
+};
+
+aptBuilder.prototype.url3 = function (part) {
     // var arr = [_.snakeCase(this.domain)];
     var arr = [_.kebabCase(this.domain)];
     if (part) {
