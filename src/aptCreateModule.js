@@ -120,6 +120,7 @@ function aptCreateModule(builder) {
                  * true will force it to check for defaultChild if segment is abstract
                  */
                 segment: builder.segment(true),
+                // segment: builder.segment(),
                 auth   : [builder.permission('access', 'menu')]
             };
 
@@ -254,9 +255,16 @@ function aptCreateModule(builder) {
                 if (!_.isArray(others)) {
                     console.error('routeConfig.others must be an array. Domain: ' + builder.domain);
                 } else {
-                    _.forEach(others, $stateProvider.state);
+                    // _.forEach(others, $stateProvider.state);
+                    _.forEach(others, function (value) {
+                        $stateProvider.state(value);
+                    });
                 }
             }
+
+            ///
+
+            builder.fixSegments();
 
         }
     }
