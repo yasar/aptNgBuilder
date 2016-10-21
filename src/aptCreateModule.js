@@ -194,10 +194,13 @@ function aptCreateModule(builder) {
             /// Layout State
 
             var layoutState = {
-                name    : builder.segment(),
-                url     : builder.url(),
-                template: builder.getLayoutTemplate(),
-                abstract: _.get(builder, 'routeConfig.layout.abstract')
+                name         : builder.segment(),
+                url          : builder.url(),
+                template     : builder.getLayoutTemplate(),
+                abstract     : _.get(builder, 'routeConfig.layout.abstract'),
+                ncyBreadcrumb: {
+                    label: builder.title
+                }
             };
 
             if (builder.create.layoutController) {
@@ -205,11 +208,12 @@ function aptCreateModule(builder) {
             }
             $stateProvider.state(layoutState);
 
-            // if (_.has(builder, 'routeConfig.layout.defaultChild')) {
-            //     var _defaultChild = _.get(builder, 'routeConfig.layout.defaultChild');
-            //     var _url          = builder.url();
-            //     $urlRouterProvider.when(_url, _url + '/' + _.trim(_defaultChild, '/'));
-            // }
+            if (_.has(builder, 'routeConfig.layout.defaultChild')) {
+                // var _defaultChild = _.get(builder, 'routeConfig.layout.defaultChild');
+                // var _url          = builder.url();
+                // $urlRouterProvider.when(_url, _url + '/' + _.trim(_defaultChild, '/'));
+                layoutState.defaultChild = _.get(builder, 'routeConfig.layout.defaultChild');
+            }
 
             ///
 
@@ -235,14 +239,16 @@ function aptCreateModule(builder) {
                      * the default configuration for this state
                      */
                     {
-                        name    : builder.segment(_name),
-                        url     : _.get(builder, 'routeConfig.layout.abstract') &&
-                                  _.get(builder, 'routeConfig.layout.defaultChild') == _name ? '' : builder.url(_name),
-                        template: '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>',
-                        access  : {
+                        name         : builder.segment(_name),
+                        url          : _.get(builder, 'routeConfig.layout.abstract') &&
+                                       _.get(builder, 'routeConfig.layout.defaultChild') == _name ? '' : builder.url(_name),
+                        template     : '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>',
+                        access       : {
                             permission: [builder.permission('read', 'module')]
                         },
-                        label   : _.upperFirst(_name),
+                        ncyBreadcrumb: {
+                            label: _.upperFirst(_name)
+                        }
                     }
                 );
                 $stateProvider.state(state);

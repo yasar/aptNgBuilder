@@ -70,7 +70,6 @@ function aptBuilder(conf) {
         title          : null,
     };
     this.layout      = {
-        abstract   : true,
         templConfig: {},
         template   : null,
         controller : null //for callback only
@@ -104,6 +103,10 @@ function aptBuilder(conf) {
         controller: null
     };
     this.routeConfig = {
+        layout : {
+            abstract    : true,
+            defaultChild: 'list'
+        },
         list   : {},
         manager: {}
     };
@@ -428,7 +431,7 @@ aptBuilder.prototype.getLayoutTemplate = function (n) {
     }
 
     // return '<div app-view-segment="3"></div>';
-    return '<div ui-view></div>';
+    return '<!--' + this.domain + '#layout--><ui-view />';
 };
 
 aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
