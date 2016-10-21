@@ -106,11 +106,17 @@ function aptCreateFormDirective(builder) {
             if (_.isFunction(builder.form.link)) {
                 builder.form.link.call(this, $injector, builder, scope, elem, attrs, ctrls);
             }
-            var $timeout = $injector.get('$timeout');
-            var vm       = scope[builder.getControllerAsName('form')];
-            $timeout(function () {
-                var formController = angular.element('[name=' + vm.form.name + ']').data('$formController');
-            });
+
+            /**
+             * seems like this is not used anywhere,
+             * that's why commenting it out.
+             * check for any side effects!!
+             */
+            // var $timeout = $injector.get('$timeout');
+            // var vm       = scope[builder.getControllerAsName('form')];
+            // $timeout(function () {
+            //     var formController = angular.element('[name=' + vm.form.name + ']').data('$formController');
+            // });
         }
     }
 
