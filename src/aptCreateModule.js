@@ -209,9 +209,6 @@ function aptCreateModule(builder) {
             $stateProvider.state(layoutState);
 
             if (_.has(builder, 'routeConfig.layout.defaultChild')) {
-                // var _defaultChild = _.get(builder, 'routeConfig.layout.defaultChild');
-                // var _url          = builder.url();
-                // $urlRouterProvider.when(_url, _url + '/' + _.trim(_defaultChild, '/'));
                 layoutState.defaultChild = _.get(builder, 'routeConfig.layout.defaultChild');
             }
 
