@@ -81,6 +81,17 @@ function aptBuilder(conf) {
         onBeforeAddNew        : null,
         onBeforeReload        : null,
         rowMenu               : null,
+
+        /**
+         * addNewConf & editConf can be configured as:
+         * {
+         *      suffix: 'manager',
+         *      popup : true,
+         *      stay  : true
+         * }
+         */
+        addNewConf: null,
+        editConf  : null
     };
     this.manager     = {
         beforeDataLoad: null,
