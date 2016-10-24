@@ -452,6 +452,11 @@ function aptCreateSelectorDirective(builder) {
 
             function setter() {
 
+                /**
+                 * clear the keyword, make sure this is placed at top.
+                 */
+                vm.keyword = null;
+
                 if (_.isUndefined(value) || _.isEqual(vm.selectItem, value)) {
                     return;
                 }

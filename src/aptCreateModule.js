@@ -214,13 +214,20 @@ function aptCreateModule(builder) {
 
             ///
 
-            var _name = null;
+            var _name     = null;
+            var _template = '';
 
             if (builder.create.listDirective) {
-                _name = 'list';
+                _name     = 'list';
+                _template = '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name))
+                            + ( _.get(builder, 'list.editConf') ? ' edit-conf=\'' + angular.toJson(builder.list.editConf) + '\'' : '')
+                            + ( _.get(builder, 'list.addNewConf') ? ' add-new-conf=\'' + angular.toJson(builder.list.addNewConf) + '\'' : '')
+                            + ' /></apt-panel>';
             }
+
             else if (builder.create.managerDirective) {
-                _name = 'manager';
+                _name     = 'manager';
+                _template = '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>';
             }
 
             if (_name) {
@@ -239,7 +246,7 @@ function aptCreateModule(builder) {
                         name         : builder.segment(_name),
                         url          : _.get(builder, 'routeConfig.layout.abstract') &&
                                        _.get(builder, 'routeConfig.layout.defaultChild') == _name ? '' : builder.url(_name),
-                        template     : '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>',
+                        template     : _template,
                         access       : {
                             permission: [builder.permission('read', 'module')]
                         },
