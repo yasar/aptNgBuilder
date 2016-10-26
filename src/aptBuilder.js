@@ -21,6 +21,22 @@ function aptBuilder(conf) {
     this.restRoute          = null;
     this.enableStatusUpdate = false;
     this.authorize          = false;
+    /**
+     * segmentMatchLevel is used by aptTempl.reset() method in conjunction with isSegmentAware=true paremeter.
+     * it is to compare at what level of segment chain we should decide the segment is changed.
+     *
+     * use case:
+     * lup module has sub modules, and inside lup (definitions) we have inside-menu which should supposed to reside
+     * on each sub modules to show the navigation. segmentMatchLevel will tell us at which segment level, we should do the reset.
+     *
+     * ex:
+     * main.lup.position.list
+     * main.lup.model.list
+     * main.lup.brand.list
+     *
+     * when we set segmentMatchLevel=2, we will skip the reset as the two level which is main.lup is same for all.
+     */
+    this.segmentMatchLevel  = 0;
     this.create             = {
         listDirective    : true,
         formDirective    : true,
@@ -323,6 +339,10 @@ aptBuilder.prototype.segment = function (part) {
         part = _.get(this, 'routeConfig.layout.abstract') && _.has(this, 'routeConfig.layout.defaultChild')
             ? _.get(this, 'routeConfig.layout.defaultChild')
             : undefined;
+
+        if (part == '') {
+            part = undefined;
+        }
     }
 
     // return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
