@@ -172,7 +172,7 @@ function aptCreateModuleService(builder) {
                        ' ng-click="vmStatusForm.setStatus(status)"' +
                        ' data-ng-repeat="status in vmStatusForm.statuses">' +
                        ' <i data-ng-class="{true:\'icon-play4\', false: \'icon-pause2\'}[vmStatusForm.form.data.status_id == status.type_id]"></i>' +
-                       ' <span>{{status.name|translate}}</span>' +
+                       ' <span>{{status.name|translate|startCase}}</span>' +
                        ' </button>' +
                        ' <input type="hidden" ng-model="vmStatusForm.form.data.status_id" type="hidden" />' +
                        ' </div>' +
