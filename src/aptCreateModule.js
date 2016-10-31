@@ -204,7 +204,8 @@ function aptCreateModule(builder) {
             };
 
             if (builder.create.layoutController) {
-                layoutState.controller = builder.getControllerName('layout');
+                layoutState.controller   = builder.getControllerName('layout');
+                layoutState.controllerAs = builder.getControllerAsName('layout');
             }
             $stateProvider.state(layoutState);
 
@@ -223,39 +224,14 @@ function aptCreateModule(builder) {
                             + ( _.get(builder, 'list.editConf') ? ' edit-conf=\'' + angular.toJson(builder.list.editConf) + '\'' : '')
                             + ( _.get(builder, 'list.addNewConf') ? ' add-new-conf=\'' + angular.toJson(builder.list.addNewConf) + '\'' : '')
                             + ' /></apt-panel>';
+                addState(_name, _template);
             }
 
-            else if (builder.create.managerDirective) {
+            else
+            if (builder.create.managerDirective) {
                 _name     = 'manager';
                 _template = '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>';
-            }
-
-            if (_name) {
-                var state = _.defaults(
-                    /**
-                     * if there is a configuration available, take it
-                     * and default to with provided object (2nd parameter)
-                     * remember, first object will be preserved and only missing ones will be used from the second one.
-                     */
-                    _.get(builder, 'routeConfig.' + _name),
-
-                    /**
-                     * the default configuration for this state
-                     */
-                    {
-                        name         : builder.segment(_name),
-                        url          : _.get(builder, 'routeConfig.layout.abstract') &&
-                                       _.get(builder, 'routeConfig.layout.defaultChild') == _name ? '' : builder.url(_name),
-                        template     : _template,
-                        access       : {
-                            permission: [builder.permission('read', 'module')]
-                        },
-                        ncyBreadcrumb: {
-                            label: _.upperFirst(_name)
-                        }
-                    }
-                );
-                $stateProvider.state(state);
+                addState(_name, _template);
             }
 
             ///
@@ -267,7 +243,7 @@ function aptCreateModule(builder) {
                 } else {
                     // _.forEach(others, $stateProvider.state);
                     _.forEach(others, function (value) {
-                        $stateProvider.state(value);
+                        addState(value);
                     });
                 }
             }
@@ -275,6 +251,40 @@ function aptCreateModule(builder) {
             ///
 
             builder.fixSegments();
+
+            function addState(_name, _template) {
+                var state = null;
+                if (_.isObject(_name)) {
+                    state = _name;
+                } else {
+                    state = _.defaults(
+                        /**
+                         * if there is a configuration available, take it
+                         * and default to with provided object (2nd parameter)
+                         * remember, first object will be preserved and only missing ones will be used from the second one.
+                         */
+                        _.get(builder, 'routeConfig.' + _name),
+
+                        /**
+                         * the default configuration for this state
+                         */
+                        {
+                            name         : builder.segment(_name),
+                            url          : _.get(builder, 'routeConfig.layout.abstract') &&
+                                           _.get(builder, 'routeConfig.layout.defaultChild') == _name ? '' : builder.url(_name),
+                            template     : _template,
+                            access       : {
+                                permission: [builder.permission('read', 'module')]
+                            },
+                            ncyBreadcrumb: {
+                                label: _.upperFirst(_name)
+                            }
+                        }
+                    );
+                }
+
+                $stateProvider.state(state);
+            }
 
         }
     }
