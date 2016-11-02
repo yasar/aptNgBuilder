@@ -36,8 +36,8 @@ function aptBuilder(conf) {
      *
      * when we set segmentMatchLevel=2, we will skip the reset as the two level which is main.lup is same for all.
      */
-    this.segmentMatchLevel  = 0;
-    this.create             = {
+    this.segmentMatchLevel = 0;
+    this.create = {
         listDirective    : true,
         formDirective    : true,
         moduleService    : true,
@@ -702,6 +702,10 @@ aptBuilder.utils = {
                 }
             }
         });
+    },
+    fixCoordinate  : function (item) {
+        item.latitude  = _.replace(item.latitude, ',', '.') * 1;
+        item.longitude = _.replace(item.longitude, ',', '.') * 1;
     }
 };
 
