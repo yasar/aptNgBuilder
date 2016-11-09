@@ -429,8 +429,11 @@ function aptCreateModuleService(builder) {
             });
         }
 
-        function deleteFn(item) {
-            restOp.delete({type: builder.domain, data: item, allData: repo});
+        function deleteFn(item, datasource) {
+            if(_.isUndefined(datasource)){
+                datasource=repo;
+            }
+            restOp.delete({type: builder.domain, data: item, allData: datasource});
         }
 
         function getRepo() {
