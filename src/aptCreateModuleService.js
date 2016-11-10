@@ -271,7 +271,7 @@ function aptCreateModuleService(builder) {
         function update(item, mute) {
             if (!_.has(item, 'restangularized')) {
                 try {
-                    Restangular.restangularizeElement(null, item, builder.getRoute());
+                    Restangular.restangularizeElement(null, item, builder.getRestRoute());
                 } catch (e) {
                     throw {
                         type   : 'structural-error',
