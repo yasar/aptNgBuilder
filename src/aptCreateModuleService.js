@@ -433,7 +433,7 @@ function aptCreateModuleService(builder) {
             if(_.isUndefined(datasource)){
                 datasource=repo;
             }
-            restOp.delete({type: builder.domain, data: item, allData: datasource});
+            restOp.delete({type: builder.domain, data: item, allData: datasource, route: builder.getRestRoute()});
         }
 
         function getRepo() {
