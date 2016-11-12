@@ -44,8 +44,10 @@ function aptCreateSelectorDirective(builder) {
                 filterRequired   : '<?',
                 loadIf           : '<?',
                 selectItem       : '=?',
-                onChange         : '&?ngChange',
-                onClick          : '&?ngClick',
+                onChange         : '&?onChange',
+                onClick          : '&?onClick',
+                onChange2        : '&?ngChange', /*see the comment below*/
+                onClick2         : '&?ngClick', /*see the comment below*/
                 onLoad           : '&?',
                 readonly         : '@?',
                 viewType         : '@?',
@@ -233,6 +235,18 @@ function aptCreateSelectorDirective(builder) {
         vm.$ngModelController = null;
         //
         // vm.setNgModelController = setNgModelController;
+
+        /**
+         * this is a workaround.
+         * originally we had ngChange/ngClick attributes on the directive,
+         * however, it is observed that when used within apt-field, since we don't use ng-model with apt-field
+         * ng-change or ng-click raises the error: "Controller 'ngModel', required by directive 'ngChange', can't be found!"
+         * in order to fix this issue we should use on-change and on-click attributes.
+         * to make the code backward-compatible ng-change is bound to onChange2
+         * and here we are fixing these attributes.
+         */
+        if (vm.onChange2) vm.onChange = vm.onChange2;
+        if (vm.onClick2) vm.onClick = vm.onClick2;
 
         /**
          * this is required for selector-menu directive.
