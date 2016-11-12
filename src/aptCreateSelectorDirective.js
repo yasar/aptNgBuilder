@@ -386,7 +386,7 @@ function aptCreateSelectorDirective(builder) {
                     && !vm.keyword) {
 
                     var modelService = getModelService();
-                    if (modelService.hasOwnProperty('search')) {
+                    if (modelService.hasOwnProperty('search') && vm.loadIf) {
                         var _filterObject = _.merge({limit: _.isUndefined(vm.limit) ? 25 : vm.limit}, vm.filterObject, filterModel);
                         vm.isLoading      = true;
                         modelService.search(_filterObject).then(function (data) {
