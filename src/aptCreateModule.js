@@ -22,6 +22,12 @@ function aptCreateModule(builder) {
                 _.set($rootScope, 'apt.modules.' + builder.package + '.' + builder.domain, builder);
             }
 
+            var aptTempl = $injector.get('aptTempl');
+            var prop     = 'appConfig.modules.' + builder.domain + '.enable';
+            if (_.has(aptTempl, prop)) {
+                _.merge(builder.enable, _.get(aptTempl, prop));
+            }
+
             if (_.isFunction(builder.onRun)) {
                 builder.onRun($injector);
             }
@@ -227,8 +233,7 @@ function aptCreateModule(builder) {
                 addState(_name, _template);
             }
 
-            else
-            if (builder.create.managerDirective) {
+            else if (builder.create.managerDirective) {
                 _name     = 'manager';
                 _template = '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>';
                 addState(_name, _template);

@@ -57,6 +57,10 @@ function aptBuilder(conf) {
         addNew: false,
         edit  : false
     };
+    /**
+     * can be used for custom configuration
+     */
+    this.enable      = {};
     this.model       = {
         normalize           : null,
         restize             : null,
