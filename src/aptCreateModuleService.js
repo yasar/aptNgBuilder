@@ -430,8 +430,8 @@ function aptCreateModuleService(builder) {
         }
 
         function deleteFn(item, datasource) {
-            if(_.isUndefined(datasource)){
-                datasource=repo;
+            if (_.isUndefined(datasource)) {
+                datasource = repo;
             }
             restOp.delete({type: builder.domain, data: item, allData: datasource, route: builder.getRestRoute()});
         }
@@ -464,7 +464,7 @@ function aptCreateModuleService(builder) {
                     var limit = 300000; //msec
                     //var limit = 10; //msec
                     if (diff < limit) {
-                        notify('loaded');
+                        afterLoaded();
                         return;
                     }
                 }
@@ -502,13 +502,7 @@ function aptCreateModuleService(builder) {
 
             model.getList(filter).then(function (data) {
                 aptUtils.emptyAndMerge(repo, data);
-                //angular.merge(repo, data);
-                notify('loaded');
-
-                if (options && _.isFunction(options.onLoaded)) {
-                    options.onLoaded(repo);
-                }
-
+                afterLoaded();
                 endLoading();
             }, function (err) {
                 endLoading();
@@ -522,6 +516,14 @@ function aptCreateModuleService(builder) {
                     bsOverlay.stop({
                         referenceId: bsOverlayReferenceId
                     });
+                }
+            }
+
+            function afterLoaded() {
+                notify('loaded');
+
+                if (options && _.isFunction(options.onLoaded)) {
+                    options.onLoaded(repo);
                 }
             }
 
