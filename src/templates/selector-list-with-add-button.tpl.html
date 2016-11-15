@@ -1,0 +1,17 @@
+<div>
+	<ng-include src="'aptNgBuilder/templates/inc/selector.header.tpl.html'"></ng-include>
+	<div class="{{<<vm>>.listClass}}">
+		<table class="table table-xs no-margin">
+			<tbody>
+			<tr data-ng-repeat="item in <<vm>>.dataFiltered=(<<vm>>.data|filter:<<vm>>.keyword)">
+				<td ng-class="{'no-border-top': $index==0}" class="p-5 text-size-mini">{{item._selectorTitle}}</td>
+				<td ng-class="{'no-border-top': $index==0}" class="no-padding">
+					<a href class="btn btn-xs btn-icon btn-link" data-ng-click="<<vm>>.onClick({data:item})"><i icon="add-to-list"></i></a>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<ng-include src="'aptNgBuilder/templates/inc/selector.generic.tpl.html'"></ng-include>
+</div>
