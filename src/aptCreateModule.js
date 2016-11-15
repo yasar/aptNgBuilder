@@ -196,6 +196,7 @@ function aptCreateModule(builder) {
         function routeConfig($injector) {
             var $stateProvider     = $injector.get('$stateProvider');
             var $urlRouterProvider = $injector.get('$urlRouterProvider');
+            var statesObj          = {};
 
             /// Layout State
 
@@ -238,6 +239,7 @@ function aptCreateModule(builder) {
                 _template = '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>';
                 addState(_name, _template);
             }
+            // statesObj[_name] = _template;
 
             ///
 
@@ -254,6 +256,8 @@ function aptCreateModule(builder) {
             }
 
             ///
+
+            pushStates();
 
             builder.fixSegments();
 
@@ -288,7 +292,14 @@ function aptCreateModule(builder) {
                     );
                 }
 
-                $stateProvider.state(state);
+                // $stateProvider.state(state);
+                statesObj[state.name] = state;
+            }
+
+            function pushStates() {
+                _.forEach(statesObj, function (state) {
+                    $stateProvider.state(state);
+                });
             }
 
         }
