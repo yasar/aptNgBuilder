@@ -1,0 +1,23 @@
+<form ng-if="!!this[builder.vm('selector')].searchable"
+      ng-submit="this[builder.vm('selector')].search(this[builder.vm('selector')].keyword)">
+	<div class="heading-divided no-padding no-margin">
+		<div class="input-group input-group-xs">
+			<input type="text"
+			       ng-model="this[builder.vm('selector')].keyword"
+			       placeholder="{{'search in the list' | translate}}"
+			       class="form-control no-border alpha-brown" />
+			<span class="input-group-addon alpha-brown no-border">{{this[builder.vm('selector')].dataFiltered.length}}</span>
+			<span class="input-group-btn">
+				<button class="btn btn-default btn-xs ng-animate-disabled"
+				        ng-hide="this[builder.vm('selector')].isLoading"
+				        type="submit"><i class="icon-search4 icon-sm"></i></button>
+				<button class="btn btn-default btn-xs ng-animate-disabled"
+				        ng-show="this[builder.vm('selector')].isLoading"
+				        type="button"><i class="spinner icon-spinner"></i></button>
+			</span>
+			<div ng-if="this[builder.vm('selector')].showMenu">
+				<div data-selector-menu domain="{{builder.domain}}" model-base="{{builder.vm('selector')}}"></div>
+			</div>
+		</div>
+	</div>
+</form>
