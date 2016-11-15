@@ -1,0 +1,6 @@
+syntax: glob
+.hg.bak1
+node_modules
+bin
+build
+aptNgBuilder.iml
