@@ -1,6 +1,8 @@
 syntax: glob
-.hg.bak1
-node_modules
+*.orig
+*.old
+*.bak?
+*.iml
 bin
 build
-aptNgBuilder.iml
+node_modules
