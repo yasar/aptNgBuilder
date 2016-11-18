@@ -57,13 +57,29 @@ function aptCreateModule(builder) {
     }
 
     function processWidgets() {
-        if (!_.has(builder, 'widgets') || !builder.widgets) {
+        if (!_.has(builder, 'widgets') || builder.widgets.length==0) {
             return;
         }
 
-        app.run(widgetLoader);
+        // app.run(widgetLoader);
 
-        widgetLoader.$inject = ['$injector'];
+        app.run(['$injector', function ($injector) {
+            var NotifyingService = $injector.get('NotifyingService');
+            var UserService      = $injector.get(userBuilder.getServiceName('service'));
+            var user             = UserService.getAuthUser();
+            if (user.is_authenticated) {
+                widgetLoader($injector);
+            } else {
+                /**
+                 * the last parameter true is for one-time listening.
+                 */
+                NotifyingService.subscribe(null, userBuilder.getEventName('login', 'successful'), function () {
+                    widgetLoader($injector);
+                }, true);
+            }
+        }]);
+
+        // widgetLoader.$inject = ['$injector'];
         function widgetLoader($injector) {
             _.forIn(_.get(builder, 'widgets'), function (widget) {
 
