@@ -511,7 +511,14 @@ aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
     }
 
     return result;
-}
+};
+/**
+ * can have N parameters
+ */
+aptBuilder.prototype.getEventName = function () {
+    var args = Array.prototype.slice.call(arguments);
+    return this.package + '.' + this.domain + '.' + args.join('.');
+};
 
 aptBuilder.prototype.generate = function (timeout) {
 
