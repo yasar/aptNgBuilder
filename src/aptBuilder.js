@@ -60,7 +60,7 @@ function aptBuilder(conf) {
     /**
      * can be used for custom configuration
      */
-    this.enable      = {};
+    this.enable = {};
     this.model       = {
         normalize           : null,
         restize             : null,
@@ -110,14 +110,16 @@ function aptBuilder(conf) {
          *      stay  : true
          * }
          */
-        addNewConf: null,
-        editConf  : null
+        addNewConf     : null,
+        editConf       : null,
+        templateWrapper: '<apt-panel></apt-panel>'
     };
     this.manager     = {
-        beforeDataLoad: null,
-        controller    : null,
-        link          : null,
-        onDataLoad    : null
+        templateWrapper: '<apt-panel></apt-panel>',
+        beforeDataLoad : null,
+        controller     : null,
+        link           : null,
+        onDataLoad     : null
     };
     this.selector    = {
         /**

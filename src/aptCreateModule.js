@@ -57,16 +57,18 @@ function aptCreateModule(builder) {
     }
 
     function processWidgets() {
-        if (!_.has(builder, 'widgets') || builder.widgets.length==0) {
+        if (!_.has(builder, 'widgets') || builder.widgets.length == 0) {
             return;
         }
-
-        // app.run(widgetLoader);
 
         app.run(['$injector', function ($injector) {
             var NotifyingService = $injector.get('NotifyingService');
             var UserService      = $injector.get(userBuilder.getServiceName('service'));
             var user             = UserService.getAuthUser();
+
+            /**
+             * make sure widgets are initialized after a successful login.
+             */
             if (user.is_authenticated) {
                 widgetLoader($injector);
             } else {
@@ -79,7 +81,6 @@ function aptCreateModule(builder) {
             }
         }]);
 
-        // widgetLoader.$inject = ['$injector'];
         function widgetLoader($injector) {
             _.forIn(_.get(builder, 'widgets'), function (widget) {
 
@@ -251,16 +252,24 @@ function aptCreateModule(builder) {
 
             if (builder.create.listDirective) {
                 _name     = 'list';
-                _template = '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name))
+                _template = '<' + _.kebabCase(builder.getDirectiveName(_name))
                             + ( _.get(builder, 'list.editConf') ? ' edit-conf=\'' + angular.toJson(builder.list.editConf) + '\'' : '')
                             + ( _.get(builder, 'list.addNewConf') ? ' add-new-conf=\'' + angular.toJson(builder.list.addNewConf) + '\'' : '')
-                            + ' /></apt-panel>';
+                            + ' />';
+                if (builder.list.templateWrapper) {
+                    var _parts = builder.list.templateWrapper.split('></');
+                    _template  = _parts[0] + '>' + _template + '</' + _parts[1];
+                }
                 addState(_name, _template);
             }
 
             else if (builder.create.managerDirective) {
                 _name     = 'manager';
-                _template = '<apt-panel><' + _.kebabCase(builder.getDirectiveName(_name)) + ' /></apt-panel>';
+                _template = '<' + _.kebabCase(builder.getDirectiveName(_name)) + ' />';
+                if (builder.manager.templateWrapper) {
+                    var _parts = builder.manager.templateWrapper.split('></');
+                    _template  = _parts[0] + '>' + _template + '</' + _parts[1];
+                }
                 addState(_name, _template);
             }
             // statesObj[_name] = _template;
