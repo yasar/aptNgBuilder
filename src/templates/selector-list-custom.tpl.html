@@ -1,0 +1,18 @@
+<div>
+	<ng-include src="'aptNgBuilder/templates/inc/selector.header.tpl.html'"></ng-include>
+	
+	<div class="{{<<vm>>.listClass}}">
+		<table class="table table-xs no-margin">
+			<tbody>
+			<tr data-ng-repeat="item in <<vm>>.dataFiltered=(<<vm>>.data|filter:<<vm>>.keyword <<customFilter>>)"
+			    ng-class="{active: item==<<vm>>.selectItem}">
+				<td ng-class="{'no-border-top': $index==0}" class="p-5"
+				    bind-html-compile="<<vm>>.itemTemplateFixed" bind-html-compile-scope-id="<<vm>>.itemScopeId">
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<ng-include src="'aptNgBuilder/templates/inc/selector.generic.tpl.html'"></ng-include>
+</div>

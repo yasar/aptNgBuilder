@@ -27,7 +27,7 @@ function aptCreateModuleService(builder) {
         var $timeout         = $injector.get('$timeout');
         var aptUtils         = $injector.get('aptUtils');
         var model            = this.model = $injector.has(builder.getServiceName('model')) ? $injector.get(builder.getServiceName('model')) : null;
-        var vars = this.vars = {selected: null};
+        var vars = this.vars = {selected: null, currentItem: null};
         var repo = this.repo = [];
         var flags = this.flags = {
             isLoading: false
@@ -38,6 +38,8 @@ function aptCreateModuleService(builder) {
             getFlags        : getFlags,
             setSelected     : setSelected,
             onSelectedChange: onSelectedChange,
+            setCurrentItem  : setCurrentItem,
+            getCurrentItem  : getCurrentItem,
             edit            : edit,
             get             : get,
             update          : update /* backward-compatibility */,
@@ -215,6 +217,15 @@ function aptCreateModuleService(builder) {
             NotifyingService.subscribe($scope, builder.domain + '-selected', function () {
                 callbackFn(vars.selected);
             });
+        }
+
+        function setCurrentItem(item) {
+            vars.currentItem = item;
+            notify('currentItem');
+        }
+
+        function getCurrentItem() {
+            return vars.currentItem;
         }
 
 
@@ -444,8 +455,8 @@ function aptCreateModuleService(builder) {
             return loadRepo();
         }
 
-        function get(id) {
-            return model.one(id).get();
+        function get(id, params) {
+            return model.one(id).get(params);
         }
 
         function loadRepo(filter, useCache, options) {

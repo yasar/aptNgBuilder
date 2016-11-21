@@ -2,8 +2,8 @@
  * Created by yasar on 17.01.2016.
  */
 
-function aptCreateSelectorDirective(builder) {
-
+function aptCreateSelectorDirective1(builder) {
+    return;
     var suffix   = builder.getSuffix('selector');
     var path     = builder.getPath(suffix);
     var pathSelf = 'aptNgBuilder/templates';
@@ -37,8 +37,7 @@ function aptCreateSelectorDirective(builder) {
              * so, we have to set replace:true.
              */
             replace         : true,
-            // scope           : {},
-            scope           : true,
+            scope           : {},
             bindToController: {
                 model            : '=?ngModel',
                 filterObject     : '<?',
@@ -115,9 +114,62 @@ function aptCreateSelectorDirective(builder) {
             delete attrs[attrName];
             delete attrs.$attr[attrName];
 
-            // if (attrs.itemTemplate) {
-            //     attrs.itemTemplate = attrs.itemTemplate.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
-            // }
+            prepare();
+
+            function prepare() {
+                var $templateCache = $injector.get('$templateCache');
+                var $compile       = $injector.get('$compile');
+                var tpl;
+                var found          = false;
+
+
+                if (attrs.readonly == 'true') {
+                    if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-readonly.tpl.html'))) {
+                        found = true;
+                    } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-readonly.tpl.html'))) {
+                        found = true;
+                    }
+                } else if (!attrs.viewType) {
+                    if (!found && (tpl = $templateCache.get(path + '/' + suffix + '.tpl.html'))) {
+                        found = true;
+                    } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '.tpl.html'))) {
+                        found = true;
+                    }
+                } else {
+                    if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
+                        found = true;
+                    } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
+                        found = true;
+                    }
+                }
+
+                ///
+
+                if (!found) {
+                    console.error('Template can not be found: `' + tpl + '`');
+                    return;
+                }
+
+                tpl = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
+                tpl = tpl.replace(/<<domain>>/g, builder.domain);
+                tpl = tpl.replace(/<<multiple>>/g, (attrs.isMultiple ? 'multiple' : ''));
+                tpl = tpl.replace(/<<customFilter>>/g, (attrs.customFilter ? '|' + attrs.customFilter : ''));
+
+                element.contents().remove();
+
+                var $tpl = $(tpl);
+
+                // make sure `required` attribute is transferred.
+                // also note that, we are looking for the element having ng-model as
+                // it is the one obligated to do the validation
+                if (attrs.required) {
+                    $tpl.find(findNgModelStr).attr('required', attrs.required);
+                }
+
+                // var compiledElement = $compile($tpl)($scope)
+                // element.append(compiledElement);
+                element.append($tpl);
+            }
 
             return {
                 post: linkFn
@@ -139,67 +191,58 @@ function aptCreateSelectorDirective(builder) {
 
             ///
 
-            if (attrs.readonly == 'true') {
-                if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-readonly.tpl.html'))) {
-                    found = true;
-                } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-readonly.tpl.html'))) {
-                    found = true;
-                }
-            } else if (!attrs.viewType) {
-                if (!found && (tpl = $templateCache.get(path + '/' + suffix + '.tpl.html'))) {
-                    found = true;
-                } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '.tpl.html'))) {
-                    found = true;
-                }
-            } else {
-                if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
-                    found = true;
-                } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
-                    found = true;
-                }
-            }
-
-            ///
-
-            if (!found) {
-                console.error('Template can not be found: `' + tpl + '`');
-                return;
-            }
-
-            tpl = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
-            tpl = tpl.replace(/<<domain>>/g, builder.domain);
-            tpl = tpl.replace(/<<multiple>>/g, (vm.isMultiple ? 'multiple' : ''));
-            tpl = tpl.replace(/<<customFilter>>/g, (vm.customFilter ? '|' + vm.customFilter : ''));
-
-            /**
-             * this didnt work as expected. so commenting it out.
-             * later, we may have to find a work around for this stiuation.
-             */
-            if (vm.itemTemplate) {
-                vm.itemTemplateFixed = vm.itemTemplate.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
-            }
-
-            element.contents().remove();
-            // element.append($compile(tpl)($scope));
-
-            var $tpl = $(tpl);
-
-            // make sure `required` attribute is transferred.
-            // also note that, we are looking for the element having ng-model as
-            // it is the one obligated to do the validation
-            if (attrs.required) {
-                $tpl.find(findNgModelStr).attr('required', attrs.required);
-            }
-
-            var compiledElement = $compile($tpl)($scope)
-            // element.replaceWith(compiledElement);
-            element.append(compiledElement);
+            // if (attrs.readonly == 'true') {
+            //     if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-readonly.tpl.html'))) {
+            //         found = true;
+            //     } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-readonly.tpl.html'))) {
+            //         found = true;
+            //     }
+            // } else if (!attrs.viewType) {
+            //     if (!found && (tpl = $templateCache.get(path + '/' + suffix + '.tpl.html'))) {
+            //         found = true;
+            //     } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '.tpl.html'))) {
+            //         found = true;
+            //     }
+            // } else {
+            //     if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
+            //         found = true;
+            //     } else if (!found && (tpl = $templateCache.get(pathSelf + '/' + suffix + '-' + attrs.viewType + '.tpl.html'))) {
+            //         found = true;
+            //     }
+            // }
+            //
+            // ///
+            //
+            // if (!found) {
+            //     console.error('Template can not be found: `' + tpl + '`');
+            //     return;
+            // }
+            //
+            // tpl = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
+            // tpl = tpl.replace(/<<domain>>/g, builder.domain);
+            // tpl = tpl.replace(/<<multiple>>/g, (vm.isMultiple ? 'multiple' : ''));
+            // tpl = tpl.replace(/<<customFilter>>/g, (vm.customFilter ? '|' + vm.customFilter : ''));
+            //
+            // element.contents().remove();
+            //
+            // var $tpl = $(tpl);
+            //
+            // // make sure `required` attribute is transferred.
+            // // also note that, we are looking for the element having ng-model as
+            // // it is the one obligated to do the validation
+            // if (attrs.required) {
+            //     $tpl.find(findNgModelStr).attr('required', attrs.required);
+            // }
+            //
+            // var compiledElement = $compile($tpl)($scope)
+            // // element.replaceWith(compiledElement);
+            // element.append(compiledElement);
 
             if ($formController) {
-                if (compiledElement.is('ng-model') || compiledElement.is('data-ng-model')) {
-                    addControl(compiledElement);
+                if (element.is('ng-model') || element.is('data-ng-model')) {
+                    addControl(element);
                 } else {
-                    _.map(compiledElement.find(findNgModelStr), addControl);
+                    _.map(element.find(findNgModelStr), addControl);
                 }
 
                 function addControl(formElement) {
@@ -217,6 +260,10 @@ function aptCreateSelectorDirective(builder) {
             if (_.isFunction(vm.onChange)) {
                 element.find('select').on('change', vm.onChange);
             }
+
+            // if (angular.isFunction(vm.onClick)) {
+            //     element.find('select').on('click', vm.onClick);
+            // }
 
             if (attrs.class) {
                 element.find('select, .list-group, .input-group').addClass(attrs.class);
@@ -291,7 +338,7 @@ function aptCreateSelectorDirective(builder) {
         // vm.isAuthorized    = builder.authorize ? builder.isAuthorized('list') : true;
         vm.searchable      = _.isUndefined(vm.searchable) ? true : vm.searchable;
         vm.selectedItem    = selectedItemFn;
-        vm.click           = clickFn;
+        // vm.onClick         = onClickFn;
         vm.search          = searchFn;
         vm.unlock          = unlockFn;
         vm.resetSelect     = resetSelectFn;
@@ -538,13 +585,13 @@ function aptCreateSelectorDirective(builder) {
             }
         }
 
-        function clickFn(item) {
-            if (_.isFunction(vm.onClick)) {
-                $timeout(function () {
-                    vm.onClick({data: item});
-                });
-            }
-        }
+        // function onClickFn(item) {
+        //     if (angular.isFunction(vm.onClick)) {
+        //         $timeout(function () {
+        //             vm.onClick({data: item});
+        //         });
+        //     }
+        // }
 
         function unlockFn() {
             vm.locked = false;
