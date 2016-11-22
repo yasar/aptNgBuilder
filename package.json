@@ -1,6 +1,6 @@
 {
   "name": "aptNgBuilder",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "BYRWEB/Apptolia",
   "devDependencies": {
     "grunt": "~0.4.2",
