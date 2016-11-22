@@ -128,11 +128,17 @@ function aptCreateSelectorDirective(builder) {
             var vm                 = ctrls[0];
             var $ngModelController = ctrls[1];
             var $formController    = ctrls[2];
-            var $templateCache     = $injector.get('$templateCache');
-            var $compile           = $injector.get('$compile');
+            ///
+            var fcParam            = '$parent.vmField.$formController';
+            if (!$formController && _.has($scope, fcParam)) {
+                $formController = _.get($scope, fcParam);
+            }
+            ///
+            var $templateCache = $injector.get('$templateCache');
+            var $compile       = $injector.get('$compile');
             var tpl;
-            var found              = false;
-            var findNgModelStr     = '[data-ng-model],[ng-model]';
+            var found          = false;
+            var findNgModelStr = '[data-ng-model],[ng-model]';
 
             vm.$ngModelController = $ngModelController;
             vm.builder            = builder;
@@ -196,7 +202,14 @@ function aptCreateSelectorDirective(builder) {
             element.append(compiledElement);
 
             if ($formController) {
-                if (compiledElement.is('ng-model') || compiledElement.is('data-ng-model')) {
+                if (element.is('[ng-model]') || element.is('[data-ng-model]')) {
+                    addControl(element);
+                } else if (compiledElement.is('ng-model') || compiledElement.is('data-ng-model')) {
+                    /**
+                     * not sure if we realy need this block.
+                     */
+                    addControl(compiledElement);
+                } else if (compiledElement.is('[ng-model]') || compiledElement.is('[data-ng-model]')) {
                     addControl(compiledElement);
                 } else {
                     _.map(compiledElement.find(findNgModelStr), addControl);
