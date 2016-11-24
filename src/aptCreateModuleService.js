@@ -350,6 +350,8 @@ function aptCreateModuleService(builder) {
                     if (!_mute) {
                         notify('updated', data, _stay);
                     }
+
+                    return data;
                 });
         }
 
