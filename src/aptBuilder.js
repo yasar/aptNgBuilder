@@ -126,6 +126,7 @@ function aptBuilder(conf) {
          * we can configure the individual items with the configuration object
          * or set to `true` to enable it with default settings
          * or set to `false` to disable it completely
+         * ex: showMenu=true, showMenu=false, showMenu={...}
          */
         showMenu  : {
             addNew: true,
