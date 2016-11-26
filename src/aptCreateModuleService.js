@@ -47,6 +47,7 @@ function aptCreateModuleService(builder) {
             'delete'        : deleteFn /* backward-compatibility */,
             getItems        : getRepo /* backward-compatibility */,
             getRepo         : getRepo,
+            setRepo         : setRepo,
             loadRepo        : loadRepo,
             resetRepo       : resetRepo,
             notify          : notify,
@@ -200,6 +201,7 @@ function aptCreateModuleService(builder) {
             //$timeout(function () {
             //NotifyingService.notify(builder.domain + ':' + event, data);
             NotifyingService.notify(builder.domain + ':' + event, {stay: stay, data: data});
+            NotifyingService.notify(builder.getEventName(event), {stay: stay, data: data});
             NotifyingService.notify('record.' + event, {stay: stay});
             //});
         }
@@ -453,6 +455,11 @@ function aptCreateModuleService(builder) {
             return repo;
         }
 
+        function setRepo(newRepo) {
+            serviceObj.resetRepo();
+            _.merge(repo, newRepo);
+        }
+
         function dbLoadFn() {
             return loadRepo();
         }
@@ -533,7 +540,7 @@ function aptCreateModuleService(builder) {
             }
 
             function afterLoaded() {
-                notify('loaded');
+                notify('loaded', repo);
 
                 if (options && _.isFunction(options.onLoaded)) {
                     options.onLoaded(repo);

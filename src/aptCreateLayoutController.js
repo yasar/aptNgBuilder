@@ -24,7 +24,7 @@ function aptCreateLayoutController(builder) {
         aptTempl.reset(true, builder);
         aptTempl.resetWithBuilder(builder);
         aptTempl.config.showSecondaryNavbar = true;
-        aptTempl.config.fillContent         = false;
+        aptTempl.config.fillContent         = true;
         aptTempl.config.transparentHeader   = false;
         aptTempl.config.showHeader          = true;
         aptTempl.config.showBreadcrumb      = true;
