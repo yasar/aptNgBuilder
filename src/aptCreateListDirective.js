@@ -37,7 +37,8 @@ function aptCreateListDirective(builder) {
                  * this is to pass in to service
                  * so that it can be used in sql query to filter out the data on the server side.
                  */
-                filter              : '=?',
+                filter              : '<?',
+                watchFilter         : '<?', // true|false default:false
                 /**
                  * this is required, when adding a new record by clicking the addNew button available for the table.
                  * ex: couponCondition list, will need what coupon_id it should be added under.
@@ -166,6 +167,18 @@ function aptCreateListDirective(builder) {
 
         if (vm.autoload) {
             load();
+        }
+
+        if (vm.watchFilter) {
+            $scope.$watch(function () {
+                return vm.filter;
+            }, function (newVal, oldVal) {
+                if (_.isUndefined(newVal) || _.isEqual(newVal, oldVal)) {
+                    return;
+                }
+
+                load();
+            });
         }
 
         function load(useCache) {

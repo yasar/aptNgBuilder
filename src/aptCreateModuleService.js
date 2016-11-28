@@ -27,7 +27,7 @@ function aptCreateModuleService(builder) {
         var $timeout         = $injector.get('$timeout');
         var aptUtils         = $injector.get('aptUtils');
         var model            = this.model = $injector.has(builder.getServiceName('model')) ? $injector.get(builder.getServiceName('model')) : null;
-        var vars = this.vars = {selected: null};
+        var vars = this.vars = {selected: null, currentItem: null};
         var repo = this.repo = [];
         var flags = this.flags = {
             isLoading: false
@@ -38,6 +38,8 @@ function aptCreateModuleService(builder) {
             getFlags        : getFlags,
             setSelected     : setSelected,
             onSelectedChange: onSelectedChange,
+            setCurrentItem  : setCurrentItem,
+            getCurrentItem  : getCurrentItem,
             edit            : edit,
             get             : get,
             update          : update /* backward-compatibility */,
@@ -45,6 +47,7 @@ function aptCreateModuleService(builder) {
             'delete'        : deleteFn /* backward-compatibility */,
             getItems        : getRepo /* backward-compatibility */,
             getRepo         : getRepo,
+            setRepo         : setRepo,
             loadRepo        : loadRepo,
             resetRepo       : resetRepo,
             notify          : notify,
@@ -172,7 +175,7 @@ function aptCreateModuleService(builder) {
                        ' ng-click="vmStatusForm.setStatus(status)"' +
                        ' data-ng-repeat="status in vmStatusForm.statuses">' +
                        ' <i data-ng-class="{true:\'icon-play4\', false: \'icon-pause2\'}[vmStatusForm.form.data.status_id == status.type_id]"></i>' +
-                       ' <span>{{status.name|translate}}</span>' +
+                       ' <span>{{status.name|translate|startCase}}</span>' +
                        ' </button>' +
                        ' <input type="hidden" ng-model="vmStatusForm.form.data.status_id" type="hidden" />' +
                        ' </div>' +
@@ -198,6 +201,7 @@ function aptCreateModuleService(builder) {
             //$timeout(function () {
             //NotifyingService.notify(builder.domain + ':' + event, data);
             NotifyingService.notify(builder.domain + ':' + event, {stay: stay, data: data});
+            NotifyingService.notify(builder.getEventName(event), {stay: stay, data: data});
             NotifyingService.notify('record.' + event, {stay: stay});
             //});
         }
@@ -215,6 +219,15 @@ function aptCreateModuleService(builder) {
             NotifyingService.subscribe($scope, builder.domain + '-selected', function () {
                 callbackFn(vars.selected);
             });
+        }
+
+        function setCurrentItem(item) {
+            vars.currentItem = item;
+            notify('currentItem');
+        }
+
+        function getCurrentItem() {
+            return vars.currentItem;
         }
 
 
@@ -271,7 +284,7 @@ function aptCreateModuleService(builder) {
         function update(item, mute) {
             if (!_.has(item, 'restangularized')) {
                 try {
-                    Restangular.restangularizeElement(null, item, builder.getRoute());
+                    Restangular.restangularizeElement(null, item, builder.getRestRoute());
                 } catch (e) {
                     throw {
                         type   : 'structural-error',
@@ -339,6 +352,8 @@ function aptCreateModuleService(builder) {
                     if (!_mute) {
                         notify('updated', data, _stay);
                     }
+
+                    return data;
                 });
         }
 
@@ -429,20 +444,28 @@ function aptCreateModuleService(builder) {
             });
         }
 
-        function deleteFn(item) {
-            restOp.delete({type: builder.domain, data: item, allData: repo});
+        function deleteFn(item, datasource) {
+            if (_.isUndefined(datasource)) {
+                datasource = repo;
+            }
+            restOp.delete({type: builder.domain, data: item, allData: datasource, route: builder.getRestRoute()});
         }
 
         function getRepo() {
             return repo;
         }
 
+        function setRepo(newRepo) {
+            serviceObj.resetRepo();
+            _.merge(repo, newRepo);
+        }
+
         function dbLoadFn() {
             return loadRepo();
         }
 
-        function get(id) {
-            return model.one(id).get();
+        function get(id, params) {
+            return model.one(id).get(params);
         }
 
         function loadRepo(filter, useCache, options) {
@@ -461,7 +484,7 @@ function aptCreateModuleService(builder) {
                     var limit = 300000; //msec
                     //var limit = 10; //msec
                     if (diff < limit) {
-                        notify('loaded');
+                        afterLoaded();
                         return;
                     }
                 }
@@ -499,13 +522,7 @@ function aptCreateModuleService(builder) {
 
             model.getList(filter).then(function (data) {
                 aptUtils.emptyAndMerge(repo, data);
-                //angular.merge(repo, data);
-                notify('loaded');
-
-                if (options && _.isFunction(options.onLoaded)) {
-                    options.onLoaded(repo);
-                }
-
+                afterLoaded();
                 endLoading();
             }, function (err) {
                 endLoading();
@@ -519,6 +536,14 @@ function aptCreateModuleService(builder) {
                     bsOverlay.stop({
                         referenceId: bsOverlayReferenceId
                     });
+                }
+            }
+
+            function afterLoaded() {
+                notify('loaded', repo);
+
+                if (options && _.isFunction(options.onLoaded)) {
+                    options.onLoaded(repo);
                 }
             }
 

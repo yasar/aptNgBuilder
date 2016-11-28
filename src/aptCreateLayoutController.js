@@ -21,13 +21,10 @@ function aptCreateLayoutController(builder) {
             var service = $injector.get(builder.getServiceName('service'));
         }
 
-        aptTempl.reset(true);
-        // aptTempl.page.title                 = builder.Domain + ' Manager';
-        // aptTempl.page.title                 = gettextCatalog.getString(builder.Domain);
-        // aptTempl.page.icon                  = builder.icon;
+        aptTempl.reset(true, builder);
         aptTempl.resetWithBuilder(builder);
         aptTempl.config.showSecondaryNavbar = true;
-        aptTempl.config.fillContent         = false;
+        aptTempl.config.fillContent         = true;
         aptTempl.config.transparentHeader   = false;
         aptTempl.config.showHeader          = true;
         aptTempl.config.showBreadcrumb      = true;

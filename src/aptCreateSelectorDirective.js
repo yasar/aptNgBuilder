@@ -28,18 +28,29 @@ function aptCreateSelectorDirective(builder) {
         aptCreateSelectorDirective.ctr++;
         return {
             restrict        : 'EA', // ACME
-            replace         : false,
-            scope           : {},
+            /**
+             *
+             *
+             * when used with apt-field and required
+             * the required attribute stays at apt-xx-selector.
+             * it should be at the template element itself.
+             * so, we have to set replace:true.
+             */
+            replace         : true,
+            // scope           : {},
+            scope           : true,
             bindToController: {
                 model            : '=?ngModel',
                 filterObject     : '<?',
-                filterGroup      : '@?',
-                filterClass      : '@?',
+                // filterGroup      : '@?',
+                // filterClass      : '@?',
                 filterRequired   : '<?',
                 loadIf           : '<?',
                 selectItem       : '=?',
-                onChange         : '&?ngChange',
-                onClick          : '&?ngClick',
+                onChange         : '&?onChange',
+                onClick          : '&?onClick',
+                onChange2        : '&?ngChange', /*see the comment below*/
+                onClick2         : '&?ngClick', /*see the comment below*/
                 onLoad           : '&?',
                 readonly         : '@?',
                 viewType         : '@?',
@@ -48,12 +59,16 @@ function aptCreateSelectorDirective(builder) {
                 limit            : '@?',
                 locked           : '@?',
                 /**
+                 *
+                 *
                  * check the builder config for more info and options for showMenu
                  */
                 showMenu         : '<?',
                 subRoute         : '@?',
                 formHandlerSuffix: '@',
                 /**
+                 *
+                 *
                  * is good to identify when we have multiple
                  * elements of same type within the form
                  */
@@ -63,23 +78,33 @@ function aptCreateSelectorDirective(builder) {
                 translateContext : '@?',
                 searchable       : '<?',
                 /**
+                 *
+                 *
                  * can be used to assign `pre-scrollable` to the holder class
                  * when view type is `list`. so that search box will stay above the scrolling table.
                  */
                 listClass        : '@?',
                 datasource       : '=?',
                 /**
+                 *
+                 *
                  * when subscribed to `add`, the selector will populate the newly added records
                  * this will listen to event fired at moduleService
                  */
                 subscribeAdd     : '<?', // true|false, default: false
-                helpText         : '@'
+                helpText         : '@',
+                /**
+                 *
+                 *
+                 * in case we need to use custom template for items
+                 */
+                itemTemplate     : '@?',
+                itemScopeId      : '@?',
+                customFilter     : '@?'
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
-            // link            : linkFn,
             compile         : compileFn,
-            // require         : [builder.getDirectiveName('selector'), '?ngModel']
             require         : [builder.getDirectiveName('selector'), '?ngModel', '^^?form']
         };
 
@@ -90,6 +115,10 @@ function aptCreateSelectorDirective(builder) {
             delete attrs[attrName];
             delete attrs.$attr[attrName];
 
+            // if (attrs.itemTemplate) {
+            //     attrs.itemTemplate = attrs.itemTemplate.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
+            // }
+
             return {
                 post: linkFn
             };
@@ -99,12 +128,20 @@ function aptCreateSelectorDirective(builder) {
             var vm                 = ctrls[0];
             var $ngModelController = ctrls[1];
             var $formController    = ctrls[2];
-            var $templateCache     = $injector.get('$templateCache');
-            var $compile           = $injector.get('$compile');
+            ///
+            var fcParam            = '$parent.vmField.$formController';
+            if (!$formController && _.has($scope, fcParam)) {
+                $formController = _.get($scope, fcParam);
+            }
+            ///
+            var $templateCache = $injector.get('$templateCache');
+            var $compile       = $injector.get('$compile');
             var tpl;
-            var found              = false;
+            var found          = false;
+            var findNgModelStr = '[data-ng-model],[ng-model]';
 
             vm.$ngModelController = $ngModelController;
+            vm.builder            = builder;
 
             ///
 
@@ -131,13 +168,22 @@ function aptCreateSelectorDirective(builder) {
             ///
 
             if (!found) {
-                console.error('Template can not be found.');
+                console.error('Template can not be found: `' + tpl + '`');
                 return;
             }
 
             tpl = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
             tpl = tpl.replace(/<<domain>>/g, builder.domain);
             tpl = tpl.replace(/<<multiple>>/g, (vm.isMultiple ? 'multiple' : ''));
+            tpl = tpl.replace(/<<customFilter>>/g, (vm.customFilter ? '|' + vm.customFilter : ''));
+
+            /**
+             * this didnt work as expected. so commenting it out.
+             * later, we may have to find a work around for this stiuation.
+             */
+            if (vm.itemTemplate) {
+                vm.itemTemplateFixed = vm.itemTemplate.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
+            }
 
             element.contents().remove();
             // element.append($compile(tpl)($scope));
@@ -148,7 +194,7 @@ function aptCreateSelectorDirective(builder) {
             // also note that, we are looking for the element having ng-model as
             // it is the one obligated to do the validation
             if (attrs.required) {
-                $tpl.find('[ng-model]').attr('required', attrs.required);
+                $tpl.find(findNgModelStr).attr('required', attrs.required);
             }
 
             var compiledElement = $compile($tpl)($scope)
@@ -156,10 +202,17 @@ function aptCreateSelectorDirective(builder) {
             element.append(compiledElement);
 
             if ($formController) {
-                if (compiledElement.is('ng-model')) {
+                if (element.is('[ng-model]') || element.is('[data-ng-model]')) {
+                    addControl(element);
+                } else if (compiledElement.is('ng-model') || compiledElement.is('data-ng-model')) {
+                    /**
+                     * not sure if we realy need this block.
+                     */
+                    addControl(compiledElement);
+                } else if (compiledElement.is('[ng-model]') || compiledElement.is('[data-ng-model]')) {
                     addControl(compiledElement);
                 } else {
-                    _.map(compiledElement.find('[ng-model]'), addControl);
+                    _.map(compiledElement.find(findNgModelStr), addControl);
                 }
 
                 function addControl(formElement) {
@@ -178,10 +231,6 @@ function aptCreateSelectorDirective(builder) {
                 element.find('select').on('change', vm.onChange);
             }
 
-            // if (angular.isFunction(vm.onClick)) {
-            //     element.find('select').on('click', vm.onClick);
-            // }
-
             if (attrs.class) {
                 element.find('select, .list-group, .input-group').addClass(attrs.class);
                 element.removeClass(attrs.class);
@@ -191,6 +240,7 @@ function aptCreateSelectorDirective(builder) {
                 element.find('select, .list-group, .input-group').attr('style', attrs.style);
                 element.removeAttr('style');
             }
+
 
             ///
 
@@ -228,6 +278,18 @@ function aptCreateSelectorDirective(builder) {
         // vm.setNgModelController = setNgModelController;
 
         /**
+         * this is a workaround.
+         * originally we had ngChange/ngClick attributes on the directive,
+         * however, it is observed that when used within apt-field, since we don't use ng-model with apt-field
+         * ng-change or ng-click raises the error: "Controller 'ngModel', required by directive 'ngChange', can't be found!"
+         * in order to fix this issue we should use on-change and on-click attributes.
+         * to make the code backward-compatible ng-change is bound to onChange2
+         * and here we are fixing these attributes.
+         */
+        if (vm.onChange2) vm.onChange = vm.onChange2;
+        if (vm.onClick2) vm.onClick = vm.onClick2;
+
+        /**
          * this is required for selector-menu directive.
          * it will use builder.permission method to get the correct permission string
          * for the `access` directive to check the authorization.
@@ -242,7 +304,7 @@ function aptCreateSelectorDirective(builder) {
         // vm.isAuthorized    = builder.authorize ? builder.isAuthorized('list') : true;
         vm.searchable      = _.isUndefined(vm.searchable) ? true : vm.searchable;
         vm.selectedItem    = selectedItemFn;
-        // vm.onClick         = onClickFn;
+        vm.click           = clickFn;
         vm.search          = searchFn;
         vm.unlock          = unlockFn;
         vm.resetSelect     = resetSelectFn;
@@ -291,7 +353,8 @@ function aptCreateSelectorDirective(builder) {
         }
 
 
-        if (!vm.filterRequired || vm.loadIf) {
+        // if ((!_.isUndefined(vm.filterRequired) && !vm.filterRequired) || vm.loadIf) {
+        if (_.isUndefined(vm.filterRequired) || !vm.filterRequired || vm.loadIf) {
             /**
              * load repo
              */
@@ -348,7 +411,15 @@ function aptCreateSelectorDirective(builder) {
         // }
 
         function initModelValue() {
-            if (vm.model) {
+
+            /**
+             * suppose we have set a variable having initial value of `null` for vm.model,
+             * checking model against `if(vm.model)` will not pass through.
+             *
+             * we should check if it is defined or not.
+             */
+            // if (vm.model) {
+            if (!_.isUndefined(vm.model)) {
 
                 var filterModel = {};
                 _.set(filterModel, builder.getPrimaryKey(), vm.model);
@@ -370,7 +441,7 @@ function aptCreateSelectorDirective(builder) {
                     && !vm.keyword) {
 
                     var modelService = getModelService();
-                    if (modelService.hasOwnProperty('search')) {
+                    if (modelService.hasOwnProperty('search') && vm.loadIf) {
                         var _filterObject = _.merge({limit: _.isUndefined(vm.limit) ? 25 : vm.limit}, vm.filterObject, filterModel);
                         vm.isLoading      = true;
                         modelService.search(_filterObject).then(function (data) {
@@ -436,6 +507,11 @@ function aptCreateSelectorDirective(builder) {
 
             function setter() {
 
+                /**
+                 * clear the keyword, make sure this is placed at top.
+                 */
+                vm.keyword = null;
+
                 if (_.isUndefined(value) || _.isEqual(vm.selectItem, value)) {
                     return;
                 }
@@ -475,13 +551,13 @@ function aptCreateSelectorDirective(builder) {
             }
         }
 
-        // function onClickFn(item) {
-        //     if (angular.isFunction(vm.onClick)) {
-        //         $timeout(function () {
-        //             vm.onClick({data: item});
-        //         });
-        //     }
-        // }
+        function clickFn(item) {
+            if (_.isFunction(vm.onClick)) {
+                $timeout(function () {
+                    vm.onClick({data: item});
+                });
+            }
+        }
 
         function unlockFn() {
             vm.locked = false;
@@ -580,7 +656,7 @@ function aptCreateSelectorDirective(builder) {
                 return;
             }
 
-            if (vm.keyword == ''
+            if ((vm.keyword == '' || _.isNull(vm.keyword) || _.isUndefined(vm.keyword))
                 && filterObject.hasOwnProperty(builder.getPrimaryKey())
                 && _selectedItem
                 && _selectedItem.hasOwnProperty(builder.getPrimaryKey())
@@ -593,8 +669,10 @@ function aptCreateSelectorDirective(builder) {
 
             // service.loadRepo(getCombinedFilter());
 
-            getModelService()
-                .getList(getCombinedFilter())
+            var modelService   = getModelService();
+            var combinedFilter = getCombinedFilter();
+            modelService
+                .getList(combinedFilter)
                 .then(
                     function (data) {
                         aptUtils.emptyAndMerge(vm.data, data);

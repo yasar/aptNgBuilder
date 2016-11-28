@@ -22,12 +22,26 @@ function aptCreateModule(builder) {
                 _.set($rootScope, 'apt.modules.' + builder.package + '.' + builder.domain, builder);
             }
 
+            var aptTempl = $injector.get('aptTempl');
+            var prop     = 'appConfig.modules.' + builder.domain + '.enable';
+            if (_.has(aptTempl, prop)) {
+                _.merge(builder.enable, _.get(aptTempl, prop));
+            }
+
             if (_.isFunction(builder.onRun)) {
                 builder.onRun($injector);
             }
         }]);
 
+    ///
+
+    /**
+     * todo: processWidgets should run after successful login!
+     */
     processWidgets();
+
+    ///
+
     processMenu(app);
     processRoute(app);
 
@@ -43,13 +57,30 @@ function aptCreateModule(builder) {
     }
 
     function processWidgets() {
-        if (!_.has(builder, 'widgets') || !builder.widgets) {
+        if (!_.has(builder, 'widgets') || builder.widgets.length == 0) {
             return;
         }
 
-        app.run(widgetLoader);
+        app.run(['$injector', function ($injector) {
+            var NotifyingService = $injector.get('NotifyingService');
+            var UserService      = $injector.get(userBuilder.getServiceName('service'));
+            var user             = UserService.getAuthUser();
 
-        widgetLoader.$inject = ['$injector'];
+            /**
+             * make sure widgets are initialized after a successful login.
+             */
+            if (user.is_authenticated) {
+                widgetLoader($injector);
+            } else {
+                /**
+                 * the last parameter true is for one-time listening.
+                 */
+                NotifyingService.subscribe(null, userBuilder.getEventName('login', 'successful'), function () {
+                    widgetLoader($injector);
+                }, true);
+            }
+        }]);
+
         function widgetLoader($injector) {
             _.forIn(_.get(builder, 'widgets'), function (widget) {
 
@@ -111,10 +142,16 @@ function aptCreateModule(builder) {
             var NotifyingService  = $injector.get('NotifyingService');
             var defaultTargetMenu = 'sideMenu';
             var defaultMenuItem   = {
-                text   : builder.title || builder.Domain,
-                icon   : builder.icon,
-                name   : _.camelCase(builder.domain + '_menu'),
-                segment: 'main.' + (builder.package ? builder.package + '.' : '') + builder.domain,
+                text: builder.title || builder.Domain,
+                icon: builder.icon,
+                name: _.camelCase(builder.domain + '_menu'),
+                // segment: 'main.' + (builder.package ? builder.package + '.' : '') + builder.domain,
+
+                /**
+                 * true will force it to check for defaultChild if segment is abstract
+                 */
+                segment: builder.segment(true),
+                // segment: builder.segment(),
                 auth   : [builder.permission('access', 'menu')]
             };
 
@@ -178,71 +215,126 @@ function aptCreateModule(builder) {
             return;
         }
 
-        app.config(routeLoader);
+        app.config(routeConfig);
 
-        routeLoader.$inject = ['$injector'];
-        function routeLoader($injector) {
-            var $routeSegmentProvider = $injector.get('$routeSegmentProvider');
+        routeConfig.$inject = ['$injector'];
+        function routeConfig($injector) {
+            var $stateProvider     = $injector.get('$stateProvider');
+            var $urlRouterProvider = $injector.get('$urlRouterProvider');
+            var statesObj          = {};
 
-            ///
+            /// Layout State
 
-            var layoutConfig = {template: builder.getLayoutTemplate()};
-            if (builder.create.layoutController) {
-                layoutConfig.controller = builder.getControllerName('layout');
-            }
-
-            ///
-
-            var listConfig = {
-                default: true
+            var layoutState = {
+                name         : builder.segment(),
+                url          : builder.url(),
+                template     : builder.getLayoutTemplate(),
+                abstract     : _.get(builder, 'routeConfig.layout.abstract'),
+                ncyBreadcrumb: {
+                    label: builder.title
+                }
             };
 
-            if (builder.create.listDirective) {
-                listConfig    = _.defaults({
-                    template: '<apt-panel><' + _.kebabCase(builder.getDirectiveName('list')) + ' /></apt-panel>'
-                }, listConfig);
-                var listParam = 'routeConfig.list';
-                if (_.has(builder, listParam)) {
-                    listConfig = _.defaults(_.get(builder, listParam), listConfig);
-                }
+            if (builder.create.layoutController) {
+                layoutState.controller   = builder.getControllerName('layout');
+                layoutState.controllerAs = builder.getControllerAsName('layout');
             }
+            $stateProvider.state(layoutState);
+
+            if (_.has(builder, 'routeConfig.layout.defaultChild')) {
+                layoutState.defaultChild = _.get(builder, 'routeConfig.layout.defaultChild');
+            }
+
+            ///
+
+            var _name     = null;
+            var _template = '';
+
+            if (builder.create.listDirective) {
+                _name     = 'list';
+                _template = '<' + _.kebabCase(builder.getDirectiveName(_name))
+                            + ( _.get(builder, 'list.editConf') ? ' edit-conf=\'' + angular.toJson(builder.list.editConf) + '\'' : '')
+                            + ( _.get(builder, 'list.addNewConf') ? ' add-new-conf=\'' + angular.toJson(builder.list.addNewConf) + '\'' : '')
+                            + ' />';
+                if (builder.list.templateWrapper) {
+                    var _parts = builder.list.templateWrapper.split('></');
+                    _template  = _parts[0] + '>' + _template + '</' + _parts[1];
+                }
+                addState(_name, _template);
+            }
+
             else if (builder.create.managerDirective) {
-                listConfig    = _.defaults({
-                    template: '<' + _.kebabCase(builder.getDirectiveName('manager')) + ' />'
-                }, listConfig);
-                var listParam = 'routeConfig.manager';
-                if (_.has(builder, listParam)) {
-                    listConfig = _.defaults(_.get(builder, listParam), listConfig);
+                _name     = 'manager';
+                _template = '<' + _.kebabCase(builder.getDirectiveName(_name)) + ' />';
+                if (builder.manager.templateWrapper) {
+                    var _parts = builder.manager.templateWrapper.split('></');
+                    _template  = _parts[0] + '>' + _template + '</' + _parts[1];
+                }
+                addState(_name, _template);
+            }
+            // statesObj[_name] = _template;
+
+            ///
+
+            if (_.has(builder, 'routeConfig.others')) {
+                var others = _.get(builder, 'routeConfig.others');
+                if (!_.isArray(others)) {
+                    console.error('routeConfig.others must be an array. Domain: ' + builder.domain);
+                } else {
+                    // _.forEach(others, $stateProvider.state);
+                    _.forEach(others, function (value) {
+                        addState(value);
+                    });
                 }
             }
 
             ///
 
-            $routeSegmentProvider
-                .when(builder.url(), builder.segment(), {
-                    label: builder.title,
-                })
-                .when(builder.url('list'), builder.segment('list'), {
-                    access: {
-                        permission: [builder.permission('read', 'module')]
-                    },
-                    label : 'List',
-                    parent: '/'
-                })
+            pushStates();
 
-                // start with: main
-                .within(builder.segment(1))
+            builder.fixSegments();
 
-                // package: app999
-                .within(builder.segment(2))
+            function addState(_name, _template) {
+                var state = null;
+                if (_.isObject(_name)) {
+                    state = _name;
+                } else {
+                    state = _.defaults(
+                        /**
+                         * if there is a configuration available, take it
+                         * and default to with provided object (2nd parameter)
+                         * remember, first object will be preserved and only missing ones will be used from the second one.
+                         */
+                        _.get(builder, 'routeConfig.' + _name),
 
-                // module: staff
-                .segment(builder.segment(3), layoutConfig)
+                        /**
+                         * the default configuration for this state
+                         */
+                        {
+                            name         : builder.segment(_name),
+                            url          : _.get(builder, 'routeConfig.layout.abstract') &&
+                                           _.get(builder, 'routeConfig.layout.defaultChild') == _name ? '' : builder.url(_name),
+                            template     : _template,
+                            access       : {
+                                permission: [builder.permission('read', 'module')]
+                            },
+                            ncyBreadcrumb: {
+                                label: _.upperFirst(_name)
+                            }
+                        }
+                    );
+                }
 
-                // section: staff.list
-                .within()
+                // $stateProvider.state(state);
+                statesObj[state.name] = state;
+            }
 
-                .segment('list', listConfig);
+            function pushStates() {
+                _.forEach(statesObj, function (state) {
+                    $stateProvider.state(state);
+                });
+            }
+
         }
     }
 }

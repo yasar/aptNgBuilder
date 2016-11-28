@@ -1,13 +1,18 @@
 <div class="list-group no-border">
 	<div class="list-group-item no-padding mb-10" ng-repeat="item in <<vm>>.data">
-		<a class="btn btn-icon btn-xlg"
-		   ng-style="{borderBottomWidth:'3px',borderBottomColor: '{{item.conf.backgroundColor}}' }"
-		   ng-class="{true:'bg-grey-800', false:'bg-grey-300'}[<<vm>>.selectedItem() == item]"
+		<a class="btn btn-icon btn-block"
+		   ng-style="{
+		        borderBottomWidth:'3px',
+		        borderBottomColor: '{{item.conf.backgroundColor}}',
+		        backgroundColor: (<<vm>>.selectedItem() == item ? item.conf.backgroundColor : 'inherit')
+		        }"
+		   ng-class="{true:'text-white', false:'alpha-grey'}[<<vm>>.selectedItem() == item]"
+		   
 		   ng-click="<<vm>>.selectedItem(item)"
 		   uib-tooltip=""
 		   tooltip-placement="left">
 			<i class="{{item.conf.icon}}"></i>
-			<span class="text-size-large text-bold ml-10">{{<<vm>>.translate
+			<span class="text-size-large text-bold">{{<<vm>>.translate
 		                ? (<<vm>>.translateContext
 				            ? (item._selectorTitle|translate:<<vm>>.translateContext )
 					        : (item._selectorTitle|translate) )
