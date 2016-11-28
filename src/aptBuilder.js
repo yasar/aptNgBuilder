@@ -21,7 +21,23 @@ function aptBuilder(conf) {
     this.restRoute          = null;
     this.enableStatusUpdate = false;
     this.authorize          = false;
-    this.create             = {
+    /**
+     * segmentMatchLevel is used by aptTempl.reset() method in conjunction with isSegmentAware=true paremeter.
+     * it is to compare at what level of segment chain we should decide the segment is changed.
+     *
+     * use case:
+     * lup module has sub modules, and inside lup (definitions) we have inside-menu which should supposed to reside
+     * on each sub modules to show the navigation. segmentMatchLevel will tell us at which segment level, we should do the reset.
+     *
+     * ex:
+     * main.lup.position.list
+     * main.lup.model.list
+     * main.lup.brand.list
+     *
+     * when we set segmentMatchLevel=2, we will skip the reset as the two level which is main.lup is same for all.
+     */
+    this.segmentMatchLevel = 0;
+    this.create = {
         listDirective    : true,
         formDirective    : true,
         moduleService    : true,
@@ -41,11 +57,16 @@ function aptBuilder(conf) {
         addNew: false,
         edit  : false
     };
+    /**
+     * can be used for custom configuration
+     */
+    this.enable = {};
     this.model       = {
         normalize           : null,
         restize             : null,
         requestInterceptors : null,
-        responseInterceptors: null
+        responseInterceptors: null,
+        transformer         : null
     };
     this.service     = {
         methods: {},
@@ -80,18 +101,32 @@ function aptBuilder(conf) {
         onBeforeAddNew        : null,
         onBeforeReload        : null,
         rowMenu               : null,
+
+        /**
+         * addNewConf & editConf can be configured as:
+         * {
+         *      suffix: 'manager',
+         *      popup : true,
+         *      stay  : true
+         * }
+         */
+        addNewConf     : null,
+        editConf       : null,
+        templateWrapper: '<apt-panel></apt-panel>'
     };
     this.manager     = {
-        beforeDataLoad: null,
-        controller    : null,
-        link          : null,
-        onDataLoad    : null
+        templateWrapper: '<apt-panel></apt-panel>',
+        beforeDataLoad : null,
+        controller     : null,
+        link           : null,
+        onDataLoad     : null
     };
     this.selector    = {
         /**
          * we can configure the individual items with the configuration object
          * or set to `true` to enable it with default settings
-         * ot set to `false` to disable it completely
+         * or set to `false` to disable it completely
+         * ex: showMenu=true, showMenu=false, showMenu={...}
          */
         showMenu  : {
             addNew: true,
@@ -101,7 +136,14 @@ function aptBuilder(conf) {
         },
         controller: null
     };
-    this.routeConfig = {};
+    this.routeConfig = {
+        layout : {
+            abstract    : true,
+            defaultChild: 'list'
+        },
+        list   : {},
+        manager: {}
+    };
     this.widgets     = [];
 
     $.extend(true, this, conf);
@@ -174,6 +216,10 @@ aptBuilder.prototype.getControllerAsName = function (type) {
     return 'vm' + _.upperFirst(this.domain) + _.upperFirst(this.getSuffix(type));
 };
 aptBuilder.prototype.vm                  = function (type, prop) {
+    if (_.isUndefined(prop)) {
+        return this.getControllerAsName(type);
+    }
+
     return this.getControllerAsName(type) + '.' + prop;
 };
 aptBuilder.prototype.getSuffix           = function (type) {
@@ -182,8 +228,48 @@ aptBuilder.prototype.getSuffix           = function (type) {
     return _.has(this, _private) ? _.get(this, _private) : (_.has(this, _generic) ? _.get(this, _generic) : type);
     // return _.has(this.suffix, type) ? _.get(this.suffix, type) : type;
 };
-aptBuilder.prototype.permission          = function (right, type) {
-    return right + '_' + _.snakeCase(this.domain) + '_' + type;
+/**
+ * ex:
+ *  mastBuilder.permission('a') => "access_mast_menu"
+ *  mastBuilder.permission('a','e') => "access_mast_menu"
+ *  mastBuilder.permission('r') => "read_mast_module"
+ *  mastBuilder.permission('r','o) => "read_mast_module"
+ *  mastBuilder.permission('a','s','approve-cancel') => "read_mast#approve-cancel_module"
+ *
+ * @param right
+ * @param type
+ * @param section
+ * @returns {string}
+ */
+aptBuilder.prototype.permission = function (right, type, section) {
+    if (right.length == 1) {
+        if (right == 'a') right = 'access';
+        if (right == 'c') right = 'create';
+        if (right == 'r') right = 'delete';
+        if (right == 'u') right = 'update';
+        if (right == 'd') right = 'delete';
+    }
+
+    var permission = [right];
+
+    if (!type) {
+        type = (right == 'access' ? 'menu' : 'module');
+    } else if (type.length == 1) {
+        if (type == 'e') type = 'menu';
+        if (type == 'o') type = 'module';
+        if (type == 's') type = 'section';
+    }
+
+    if (type == 'section') {
+        permission.push(_.snakeCase(this.domain) + '#' + section);
+    } else {
+        permission.push(_.snakeCase(this.domain));
+    }
+
+    permission.push(type);
+
+    // return right + '_' + _.snakeCase(this.domain) + '_' + type;
+    return permission.join('_');
 };
 
 /**
@@ -201,14 +287,76 @@ aptBuilder.prototype.permission          = function (right, type) {
  * >> x = 'mast';
  *
  */
+aptBuilder.prototype.segmentx = function (part) {
+    if (_.isUndefined(this.segments)) {
+        // this.segments = ['main', this.package, _.snakeCase(this.domain)];
+        this.segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
+            // package might be empty in some cases, and we don't want them.
+            // this.segments will only contain items that we return true for.
+            return s;
+        });
+    }
+
+    var prefix  = this.segments.join('.');
+    var segment = findSegment(part, this.routeConfig);
+
+    if (_.isUndefined(segment)) {
+        return prefix + '.' + part;
+    }
+
+    if (segment.abstract && segment.defaultChild) {
+        return segment.name + '.' + segment.defaultChild;
+    }
+
+    return segment.name;
+
+    function findSegment(part, routeConfig) {
+        var _search  = prefix + (_.isUndefined(part) ? '' : ('.' + part));
+        var _segment = undefined; //because _.find() will return undefined if not found.
+
+        _segment = _.find(routeConfig, {name: _search});
+
+        if (_.isUndefined(_segment) && _.has(routeConfig, 'others')) {
+            _segment = _.find(routeConfig.others, {name: _search});
+        }
+
+        return _segment;
+    }
+};
 aptBuilder.prototype.segment = function (part) {
     if (_.isUndefined(this.segments)) {
         // this.segments = ['main', this.package, _.snakeCase(this.domain)];
-        this.segments = ['main', this.package, _.camelCase(this.domain)];
+        this.segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
+            // package might be empty in some cases, and we don't want them.
+            // this.segments will only contain items that we return true for.
+            return s;
+        });
     }
 
     if (_.isNumber(part)) {
         return this.segments[part - 1];
+    }
+
+    /**
+     * when part=true, it is used as flag actually.
+     * if the condition is not satisfied (abstract and childState)
+     * then we should reset this flag to undefined.
+     */
+    if (part === true) {
+        part = _.get(this, 'routeConfig.layout.abstract') && _.has(this, 'routeConfig.layout.defaultChild')
+            ? _.get(this, 'routeConfig.layout.defaultChild')
+            : undefined;
+
+        if (part == '') {
+            part = undefined;
+        }
+    }
+
+    // return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
+
+    var segment = this.findSegment(part);
+    if (segment) {
+        return segment.redirectTo ? segment.redirectTo.name : segment.name;
     }
 
     return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
@@ -222,7 +370,70 @@ aptBuilder.prototype.segment = function (part) {
 //     return this.segments.join('.');
 // };
 
+aptBuilder.prototype.fixSegments = function (routes) {
+    var _this = this;
+
+    if (_.isUndefined(this.segmentRetryQ)) {
+        this.segmentRetryQ = [];
+    }
+
+    if (_.isUndefined(routes)) {
+        routes = this.routeConfig;
+    }
+
+    _.forEach(routes, function (config) {
+        if (_.isArray(config)) {
+            _.forEach(config, function (value) {
+                _this.segmentRetryQ.push(value);
+            });
+            return;
+        }
+
+        if (config.abstract && config.defaultChild) {
+            var newSegment = _this.findSegment(config.defaultChild, config);
+            if (newSegment) {
+                config.redirectTo = newSegment;
+                // config.name = newSegment.name;
+            }
+        }
+    });
+
+    if (this.segmentRetryQ.length) {
+        var next = _.pullAt(this.segmentRetryQ, 0);
+        this.fixSegments(next);
+    }
+};
+
+aptBuilder.prototype.findSegment = function (part, referenceSegment) {
+    var segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
+        // package might be empty in some cases, and we don't want them.
+        // this.segments will only contain items that we return true for.
+        return s;
+    });
+    var prefix   = referenceSegment && referenceSegment.name ? referenceSegment.name : segments.join('.');
+
+    var _search  = prefix + (_.isUndefined(part) ? '' : ('.' + part));
+    var _segment = undefined; //because _.find() will return undefined if not found.
+
+    // _segment = _.find(routeConfig, {name: _search});
+    _segment = _.find(this.routeConfig, {name: _search});
+
+    if (_.isUndefined(_segment) && _.has(this.routeConfig, 'others')) {
+        _segment = _.find(this.routeConfig.others, {name: _search});
+    }
+
+    return _segment;
+};
+
 aptBuilder.prototype.url = function (part) {
+    var path = part;
+    if (_.isUndefined(part)) {
+        path = _.kebabCase(this.domain);
+    }
+    return '/' + _.trim(path, '/');
+};
+
+aptBuilder.prototype.url3 = function (part) {
     // var arr = [_.snakeCase(this.domain)];
     var arr = [_.kebabCase(this.domain)];
     if (part) {
@@ -234,13 +445,31 @@ aptBuilder.prototype.url = function (part) {
     return '/' + arr.join('/');
 };
 
-aptBuilder.prototype.getLayoutTemplate = function () {
+aptBuilder.prototype.url2 = function (part) {
+    if (_.isUndefined(this.parts)) {
+        this.parts = [_.kebabCase(this.domain)];
+    }
+    if (part) {
+        if (_.isNumber(part)) {
+            return this.parts[part - 1];
+        }
+        this.parts.push(part);
+    }
+    return '/' + this.parts.join('/');
+};
+
+aptBuilder.prototype.getLayoutTemplate = function (n) {
     if (this.layout.template) {
         return this.layout.template;
     }
 
-    // view-segment is 3 when the route is like: main.<package>.<module>
-    return '<div app-view-segment="3"></div>';
+    if (_.isUndefined(n)) {
+        // view-segment is 3 when the route is like: main.<package>.<module>
+        n = 3;
+    }
+
+    // return '<div app-view-segment="3"></div>';
+    return '<!--' + this.domain + '#layout--><ui-view />';
 };
 
 aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
@@ -285,7 +514,14 @@ aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
     }
 
     return result;
-}
+};
+/**
+ * can have N parameters
+ */
+aptBuilder.prototype.getEventName = function () {
+    var args = Array.prototype.slice.call(arguments);
+    return this.package + '.' + this.domain + '.' + args.join('.');
+};
 
 aptBuilder.prototype.generate = function (timeout) {
 
@@ -367,7 +603,26 @@ aptBuilder.utils = {
         });
     },
     makeDate  : function (item, props) {
-        return this.makeNativeDate(item, props);
+        /**
+         * dtr edit form expects moment date.
+         * mast selector/date_installation date format expects native date object.
+         * so keep it moment date.
+         * we have to find a common base for every case scenarios.
+         *
+         *
+         * // return this.makeNativeDate(item, props);
+         */
+
+        if (item == null) return;
+        if (!_.isArray(props)) props = [props];
+        _.forEach(props, function (prop) {
+            if (item.hasOwnProperty(prop) && item[prop] !== null) {
+                item[prop] = item[prop] ? moment(item[prop], 'YYYY-MM-DD HH:mm:ss') : moment();
+            }
+        });
+    },
+
+    makeMoment: function (item, props) {
         if (item == null) return;
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
@@ -461,6 +716,10 @@ aptBuilder.utils = {
                 }
             }
         });
+    },
+    fixCoordinate  : function (item) {
+        item.latitude  = _.replace(item.latitude, ',', '.') * 1;
+        item.longitude = _.replace(item.longitude, ',', '.') * 1;
     }
 };
 

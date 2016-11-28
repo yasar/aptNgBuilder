@@ -1,22 +1,6 @@
 <div>
-	<form ng-if="!!<<vm>>.searchable" ng-submit="<<vm>>.search(<<vm>>.keyword)">
-		<div class="heading-divided no-padding no-margin">
-			<div class="input-group input-group-xs">
-				<input type="text" ng-model="<<vm>>.keyword" placeholder="{{'search in the list' | translate}}"
-				       class="form-control no-border alpha-brown" />
-				<span class="input-group-addon alpha-brown no-border">{{<<vm>>.dataFiltered.length}}</span>
-				<span class="input-group-btn">
-	                <button class="btn btn-default btn-xs ng-animate-disabled" ng-hide="<<vm>>.isLoading"
-	                        type="submit"><i class="icon-search4 icon-sm"></i></button>
-	                <button class="btn btn-default btn-xs ng-animate-disabled" type="button"
-	                        ng-show="<<vm>>.isLoading"><i class="spinner icon-spinner"></i></button>
-	            </span>
-				<div ng-if="<<vm>>.showMenu">
-					<div data-selector-menu domain="<<domain>>" model-base="<<vm>>"></div>
-				</div>
-			</div>
-		</div>
-	</form>
+	<ng-include src="'aptNgBuilder/templates/inc/selector.header.tpl.html'"></ng-include>
+	
 	<div class="{{<<vm>>.listClass}}">
 		<table class="table table-xs no-margin">
 			<tbody>
@@ -36,14 +20,5 @@
 		</table>
 	</div>
 	
-	<div data-ng-if="<<vm>>.isLoading && !<<vm>>.dataFiltered.length">
-		<apt-loading-indicator></apt-loading-indicator>
-	</div>
-	<div data-ng-if="!<<vm>>.isLoading && !<<vm>>.dataFiltered.length" class="well no-border">
-		<div class="text-muted">
-			<h2 translate>No results</h2>
-			<p translate>There is no any result found.</p>
-		</div>
-		<apt-inline-help translate>`list in search` only looks in the current listing as you type in, in order to perform a full search you should press `enter` key.</apt-inline-help>
-	</div>
+	<ng-include src="'aptNgBuilder/templates/inc/selector.generic.tpl.html'"></ng-include>
 </div>

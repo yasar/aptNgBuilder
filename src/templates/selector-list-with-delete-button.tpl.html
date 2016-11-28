@@ -1,0 +1,20 @@
+<div>
+	<ng-include src="'aptNgBuilder/templates/inc/selector.header.tpl.html'"></ng-include>
+	<div class="{{this[builder.vm('selector')].listClass}}">
+		<table class="table table-xs no-margin">
+			<tbody>
+			<tr data-ng-repeat="item in this[builder.vm('selector')].dataFiltered=(this[builder.vm('selector')].data|filter:this[builder.vm('selector')].keyword) track by $index"
+			    ng-class="{active: item==this[builder.vm('selector')].selectItem}">
+				<td ng-class="{'no-border-top': $index==0}" class="p-5 text-size-mini">
+					<a href data-ng-click="this[builder.vm('selector')].selectedItem(item)">{{item._selectorTitle}}</a>
+				</td>
+				<td ng-class="{'no-border-top': $index==0}" class="no-padding text-right">
+					<a href class="btn btn-link btn-xs btn-icon"
+					   data-ng-click="this[builder.vm('selector')].onClick({data:item})"><i icon="delete"></i></a>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	<ng-include src="'aptNgBuilder/templates/inc/selector.generic.tpl.html'"></ng-include>
+</div>
