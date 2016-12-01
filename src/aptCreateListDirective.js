@@ -141,6 +141,7 @@ function aptCreateListDirective(builder) {
         vm.$attrs = $attrs;
 
         vm.rowMenu              = getRowMenu();
+        vm.rowMenuConfig        = getRowMenuConfig();
         vm.addNew               = addNew;
         vm.reload               = reloadFn;
         vm.selectItem           = selectItemFn;
@@ -273,6 +274,13 @@ function aptCreateListDirective(builder) {
                 rowMenu = getDefaultRowMenu(vm, aptMenu);
             }
             return rowMenu;
+        }
+
+        function getRowMenuConfig() {
+            return {
+                pkey      : builder.getPrimaryKey(),
+                showPKeyId: true
+            };
         }
 
         function selectItemFn(item) {
