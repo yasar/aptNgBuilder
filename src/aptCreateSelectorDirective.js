@@ -52,6 +52,7 @@ function aptCreateSelectorDirective(builder) {
                 onChange2        : '&?ngChange', /*see the comment below*/
                 onClick2         : '&?ngClick', /*see the comment below*/
                 onLoad           : '&?',
+                onReset          : '&?',
                 readonly         : '@?',
                 viewType         : '@?',
                 label            : '@?',
@@ -545,7 +546,8 @@ function aptCreateSelectorDirective(builder) {
                  */
                 if (_.isFunction(vm.onChange)) {
                     $timeout(function () {
-                        vm.onChange({data: _selectedItem});
+                        // vm.onChange({data: _selectedItem});
+                        vm.onChange({data: _selectedItem, builder: builder});
                     });
                 }
             }
@@ -565,6 +567,9 @@ function aptCreateSelectorDirective(builder) {
 
         function resetSelectFn() {
             selectedItemFn(null);
+            if (_.isFunction(vm.onReset)) {
+                vm.onReset({builder: builder});
+            }
         }
 
         function addNewFn() {

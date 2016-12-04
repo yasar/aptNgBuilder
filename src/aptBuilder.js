@@ -287,42 +287,42 @@ aptBuilder.prototype.permission = function (right, type, section) {
  * >> x = 'mast';
  *
  */
-aptBuilder.prototype.segmentx = function (part) {
-    if (_.isUndefined(this.segments)) {
-        // this.segments = ['main', this.package, _.snakeCase(this.domain)];
-        this.segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
-            // package might be empty in some cases, and we don't want them.
-            // this.segments will only contain items that we return true for.
-            return s;
-        });
-    }
-
-    var prefix  = this.segments.join('.');
-    var segment = findSegment(part, this.routeConfig);
-
-    if (_.isUndefined(segment)) {
-        return prefix + '.' + part;
-    }
-
-    if (segment.abstract && segment.defaultChild) {
-        return segment.name + '.' + segment.defaultChild;
-    }
-
-    return segment.name;
-
-    function findSegment(part, routeConfig) {
-        var _search  = prefix + (_.isUndefined(part) ? '' : ('.' + part));
-        var _segment = undefined; //because _.find() will return undefined if not found.
-
-        _segment = _.find(routeConfig, {name: _search});
-
-        if (_.isUndefined(_segment) && _.has(routeConfig, 'others')) {
-            _segment = _.find(routeConfig.others, {name: _search});
-        }
-
-        return _segment;
-    }
-};
+// aptBuilder.prototype.segmentx = function (part) {
+//     if (_.isUndefined(this.segments)) {
+//         // this.segments = ['main', this.package, _.snakeCase(this.domain)];
+//         this.segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
+//             // package might be empty in some cases, and we don't want them.
+//             // this.segments will only contain items that we return true for.
+//             return s;
+//         });
+//     }
+//
+//     var prefix  = this.segments.join('.');
+//     var segment = findSegment(part, this.routeConfig);
+//
+//     if (_.isUndefined(segment)) {
+//         return prefix + '.' + part;
+//     }
+//
+//     if (segment.abstract && segment.defaultChild) {
+//         return segment.name + '.' + segment.defaultChild;
+//     }
+//
+//     return segment.name;
+//
+//     function findSegment(part, routeConfig) {
+//         var _search  = prefix + (_.isUndefined(part) ? '' : ('.' + part));
+//         var _segment = undefined; //because _.find() will return undefined if not found.
+//
+//         _segment = _.find(routeConfig, {name: _search});
+//
+//         if (_.isUndefined(_segment) && _.has(routeConfig, 'others')) {
+//             _segment = _.find(routeConfig.others, {name: _search});
+//         }
+//
+//         return _segment;
+//     }
+// };
 aptBuilder.prototype.segment = function (part) {
     if (_.isUndefined(this.segments)) {
         // this.segments = ['main', this.package, _.snakeCase(this.domain)];
@@ -433,30 +433,30 @@ aptBuilder.prototype.url = function (part) {
     return '/' + _.trim(path, '/');
 };
 
-aptBuilder.prototype.url3 = function (part) {
-    // var arr = [_.snakeCase(this.domain)];
-    var arr = [_.kebabCase(this.domain)];
-    if (part) {
-        if (_.isNumber(part)) {
-            return arr[part + 1];
-        }
-        arr.push(part);
-    }
-    return '/' + arr.join('/');
-};
+// aptBuilder.prototype.url3 = function (part) {
+//     // var arr = [_.snakeCase(this.domain)];
+//     var arr = [_.kebabCase(this.domain)];
+//     if (part) {
+//         if (_.isNumber(part)) {
+//             return arr[part + 1];
+//         }
+//         arr.push(part);
+//     }
+//     return '/' + arr.join('/');
+// };
 
-aptBuilder.prototype.url2 = function (part) {
-    if (_.isUndefined(this.parts)) {
-        this.parts = [_.kebabCase(this.domain)];
-    }
-    if (part) {
-        if (_.isNumber(part)) {
-            return this.parts[part - 1];
-        }
-        this.parts.push(part);
-    }
-    return '/' + this.parts.join('/');
-};
+// aptBuilder.prototype.url2 = function (part) {
+//     if (_.isUndefined(this.parts)) {
+//         this.parts = [_.kebabCase(this.domain)];
+//     }
+//     if (part) {
+//         if (_.isNumber(part)) {
+//             return this.parts[part - 1];
+//         }
+//         this.parts.push(part);
+//     }
+//     return '/' + this.parts.join('/');
+// };
 
 aptBuilder.prototype.getLayoutTemplate = function (n) {
     if (this.layout.template) {
@@ -637,6 +637,10 @@ aptBuilder.utils = {
         if (!_.isArray(props)) props = [props];
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
+                if (_.isDate(item[prop])) {
+                    return;
+                }
+
                 // item[prop] = new Date(item[prop]);
                 var t = item[prop].split(/[- :]/);
                 if (t[1]) {
