@@ -36,6 +36,9 @@ function aptCreateListDirective(builder) {
                 /**
                  * this is to pass in to service
                  * so that it can be used in sql query to filter out the data on the server side.
+                 *
+                 * note that, if combined with datatable directive, there is a datasource-filter attribute available, as well.
+                 * datasource-filter will run over the already-available data only, will not trigger the service.
                  */
                 filter              : '<?',
                 watchFilter         : '<?', // true|false default:false
@@ -179,7 +182,7 @@ function aptCreateListDirective(builder) {
                 }
 
                 load();
-            });
+            }, true);
         }
 
         function load(useCache) {

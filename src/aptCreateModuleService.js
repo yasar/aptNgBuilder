@@ -507,7 +507,8 @@ function aptCreateModuleService(builder) {
                 filter = _.omit(filter, $injector);
             }
 
-            if (filter) {
+            // if (filter) {
+            if (!_.isEmpty(filter)) {
                 /**
                  * fix the date value if there is any
                  */
