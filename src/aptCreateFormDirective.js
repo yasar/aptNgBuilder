@@ -42,7 +42,6 @@ function aptCreateFormDirective(builder) {
                 itemId        : '=?',
                 watch         : '=?',
                 readonlyFields: '=?',
-                // isDirty       : '&?',
                 mute          : '=?',
                 /**
                  * if this form is shown in a popup, and stay=true then
