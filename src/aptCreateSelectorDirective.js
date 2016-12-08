@@ -386,6 +386,7 @@ function aptCreateSelectorDirective(builder) {
                  * PS2: this seems to be required, as the model changes, the selectedItem does not change.
                  */
                 else if (!_.isEqual(newVal.model, oldVal.model)) {
+                    debugger;
                     filterObject[builder.getPrimaryKey()] = newVal.model;
                     initModelValue();
                 }
