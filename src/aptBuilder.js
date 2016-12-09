@@ -5,6 +5,7 @@
 
 function aptBuilder(conf) {
     this.domain             = null;
+    this.name               = null;
     this.title              = null; // used for menu entries and possible other needs.
     this.package            = null;
     this.icon               = '';
@@ -149,16 +150,20 @@ function aptBuilder(conf) {
     $.extend(true, this, conf);
 }
 
-aptBuilder.prototype.getRoute     = function () {
+aptBuilder.prototype.getBuilderName = function () {
+    return this.name || this.domain + 'Builder';
+};
+aptBuilder.prototype.getRoute       = function () {
     window.alert('Check console');
     console.error('getRoute() is deprecated, use getRestRoute() instead');
 };
-aptBuilder.prototype.getRestRoute = function () {
+aptBuilder.prototype.getRestRoute   = function () {
     if (this.restRoute) {
         return this.restRoute;
     }
 
-    return (this.package ? (this.package == 'modules' ? '' : this.package + '/') : '') + this.domain;
+    // return (this.package ? (this.package == 'modules' ? '' : this.package + '/') : '') + this.domain;
+    return (this.package ? (this.package == 'modules' ? '/' : this.package + '/') : '/') + this.domain;
 };
 
 aptBuilder.prototype.getModuleName = function () {

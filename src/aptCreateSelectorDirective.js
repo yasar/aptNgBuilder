@@ -174,6 +174,7 @@ function aptCreateSelectorDirective(builder) {
             }
 
             tpl = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
+            tpl = tpl.replace(/<<builder>>/g, builder.getBuilderName());
             tpl = tpl.replace(/<<domain>>/g, builder.domain);
             tpl = tpl.replace(/<<multiple>>/g, (vm.isMultiple ? 'multiple' : ''));
             tpl = tpl.replace(/<<customFilter>>/g, (vm.customFilter ? '|' + vm.customFilter : ''));
@@ -268,11 +269,14 @@ function aptCreateSelectorDirective(builder) {
         var aptAuthorizationService = $injector.get('aptAuthorizationService');
         var gettextCatalog          = $injector.get('gettextCatalog');
         var $timeout                = $injector.get('$timeout');
+        var $window                 = $injector.get('$window');
         var vm                      = this;
         var _selectedItem           = null;
         // var datasource              = null;
         var filterObject            = {};
         var isModelValueInitialized = false;
+
+        $scope.$window = $window;
 
         vm.$ngModelController = null;
         //

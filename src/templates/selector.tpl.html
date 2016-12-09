@@ -14,11 +14,11 @@
         <ui-select-choices repeat="item in <<vm>>.data | filter: $select.search" class="ui-select-choices"
                            refresh="<<vm>>.search($select.search)"
                            refresh-delay="500">
-            <div ng-if="!<<vm>>.translate" ng-bind-html="(item._selectorTitle) | highlight: $select.search"></div>
+            <div ng-if="!<<vm>>.translate" ng-bind-html="(item[$window.<<builder>>.getPrimaryKey()] + ': ' + item._selectorTitle) | highlight: $select.search"></div>
             <div ng-if="<<vm>>.translate && !<<vm>>.translateContext"
-                 ng-bind-html="(item._selectorTitle|translate) | highlight: $select.search"></div>
+                 ng-bind-html="(item[$window.<<builder>>.getPrimaryKey()] + ': ' + (item._selectorTitle|translate)) | highlight: $select.search"></div>
             <div ng-if="<<vm>>.translate && <<vm>>.translateContext"
-                 ng-bind-html="(item._selectorTitle|translate:<<vm>>.translateContext) | highlight: $select.search"></div>
+                 ng-bind-html="(item[$window.<<builder>>.getPrimaryKey()] + ': ' + (item._selectorTitle|translate:<<vm>>.translateContext)) | highlight: $select.search"></div>
         </ui-select-choices>
     </ui-select>
 
