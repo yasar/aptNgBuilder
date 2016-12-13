@@ -21,6 +21,7 @@ function aptBuilder(conf) {
     this.onBeforeAddNew     = null; // function, called from within module-service
     this.restRoute          = null;
     this.enableStatusUpdate = false;
+    this.enableApproval     = false;
     this.authorize          = false;
     /**
      * segmentMatchLevel is used by aptTempl.reset() method in conjunction with isSegmentAware=true paremeter.
@@ -99,6 +100,7 @@ function aptBuilder(conf) {
         askConfirmBeforeAddNew: false,
         controller            : null,
         link                  : null,
+        onBeforeEdit          : null,
         onBeforeAddNew        : null,
         onBeforeReload        : null,
         rowMenu               : null,

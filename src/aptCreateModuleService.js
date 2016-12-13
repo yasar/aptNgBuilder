@@ -69,6 +69,15 @@ function aptCreateModuleService(builder) {
             serviceObj.updateStatus = updateStatus;
         }
 
+        if (builder.enableApproval) {
+            serviceObj.acceptApproveRequest = acceptApproveRequest; // confirmApproveForm
+            serviceObj.cancelApproveRequest = cancelApproveRequest;
+            serviceObj.rejectApproveRequest = rejectApproveRequest;
+            serviceObj.unlockApprove        = unlockApprove;
+            serviceObj.restoreApprove       = restoreApprove;
+            serviceObj.requestApprove       = requestApprove; // sendForApproval
+        }
+
         if (_.get(builder, 'disable.addNew') === true) {
             delete serviceObj.addNew;
         }
@@ -91,6 +100,197 @@ function aptCreateModuleService(builder) {
 
 
         return serviceObj;
+
+        //////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+
+        function acceptApproveRequest(item) {
+            var dialogs        = $injector.get('dialogs');
+            var aptTempl       = $injector.get('aptTempl');
+            var aptUtils       = $injector.get('aptUtils');
+            var $q             = $injector.get('$q');
+            var $timeout       = $injector.get('$timeout');
+            var gettextCatalog = $injector.get('gettextCatalog');
+            var title          = gettextCatalog.getString('Confirmation required');
+            var message        = gettextCatalog.getString('Are you sure you want to confirm the approve request?');
+
+            var _this = this;
+
+            dialogs.create(mastBuilder.getPath('list') + '/confirmApprovePopup.tpl.html',
+                controllerFn,
+                undefined,
+                aptTempl.appConfig.defaults.dialogs.large,
+                'vmConfirmForm');
+
+            controllerFn.$inject = ['$uibModalInstance', '$rootScope', 'aptUtils', '$q'];
+            function controllerFn($uibModalInstance, $rootScope, aptUtils, $q) {
+
+                // aptTempl.blurPage(true);
+
+                var vmConfirmForm = this;
+                var $newScope     = $rootScope.$new();
+
+                vmConfirmForm.form = new aptUtils.form('mast', item, {
+                    $scope        : $newScope,
+                    onBeforeSubmit: onBeforeSubmit
+                });
+                function onBeforeSubmit() {
+                    var defer = $q.defer();
+                    step2(vmConfirmForm.form.data).then(function (result) {
+                        defer.resolve(result);
+                    });
+                    return defer.promise;
+                }
+
+                vmConfirmForm.close = function () {
+                    $uibModalInstance.close();
+                    // aptTempl.blurPage(false);
+                };
+            }
+
+            function step2(item) {
+
+                /**
+                 * this `q` is required for the approveRequestForm to function properly.
+                 * normally, this should not be required but it was designed that way.
+                 * so, the generic-form tries to submit the form, but onBeforeSubmit kicks in, and this is where we fall into at this point.
+                 * we dont want the generic form submit, instead, we want to customize where to submit the form.
+                 */
+                var defer = $q.defer();
+
+                aptUtils.showConfirm(title, message, function () {
+                    item.acceptApprovedRequest(item).then(function (data) {
+                        angular.merge(item, data);
+
+                        var pkey = builder.getPrimaryKey;
+                        var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
+                        repo.splice(idx, 1);
+                        $timeout(function () {
+                            repo.splice(idx, 0, data);
+                        });
+
+                        defer.resolve(data);
+                    });
+                });
+
+                return defer.promise;
+            }
+        }
+
+        function cancelApproveRequest(item) {
+            var aptUtils       = $injector.get('aptUtils');
+            var $timeout       = $injector.get('$timeout');
+            var gettextCatalog = $injector.get('gettextCatalog');
+            var title          = gettextCatalog.getString('Confirmation required');
+            var message        = gettextCatalog.getString('Are you sure you want to cancel the approve request?');
+            var _this          = this;
+
+            aptUtils.showConfirm(title, message, function () {
+                var waitConf = {
+                    progress: 10
+                };
+                aptUtils.showWait(waitConf);
+
+                item.cancelApproveRequest().then(function (data) {
+                    angular.merge(item, data);
+
+                    var pkey = builder.getPrimaryKey;
+                    var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
+
+                    repo.splice(idx, 1);
+                    $timeout(function () {
+                        repo.splice(idx, 0, data);
+                        waitConf.progress = 99;
+                    });
+                });
+            });
+        }
+
+        function rejectApproveRequest(item) {
+            var _this          = this;
+            var aptUtils       = $injector.get('aptUtils');
+            var gettextCatalog = $injector.get('gettextCatalog');
+            var title          = gettextCatalog.getString('Confirmation Required');
+            var message        = gettextCatalog.getString('Are you sure that you want to reject the approve request?');
+            aptUtils.showConfirm(title, message, function () {
+                item.rejectApprovedRequest().then(function (data) {
+                    angular.merge(item, data);
+
+                    var pkey = builder.getPrimaryKey;
+                    var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
+
+                    repo.splice(idx, 1);
+                    $timeout(function () {
+                        repo.splice(idx, 0, data);
+                    });
+                });
+            });
+
+        }
+
+        function unlockApprove(item) {
+            var _this          = this;
+            var aptUtils       = $injector.get('aptUtils');
+            var gettextCatalog = $injector.get('gettextCatalog');
+            var title          = gettextCatalog.getString('Confirmation Required');
+            var message        = gettextCatalog.getString('Are you sure that you want to unlock the approve state?');
+            aptUtils.showConfirm(title, message, function () {
+                item.unlockApprove().then(function (data) {
+                    angular.merge(item, data);
+
+                    // var idx = _.findIndex(repo, {mast_id: data.mast_id});
+                    // repo.splice(idx, 1);
+                    // $timeout(function () {
+                    //     repo.splice(idx, 0, data);
+                    // });
+                });
+            });
+        }
+
+        function restoreApprove(item) {
+            var _this          = this;
+            var aptUtils       = $injector.get('aptUtils');
+            var gettextCatalog = $injector.get('gettextCatalog');
+            var title          = gettextCatalog.getString('Confirmation Required');
+            var message        = gettextCatalog.getString('Are you sure that you want to cancel unlock and restore the approve state?');
+            aptUtils.showConfirm(title, message, function () {
+                item.restoreApprove().then(function (data) {
+                    angular.merge(item, data);
+
+                    // var idx = _.findIndex(repo, {mast_id: data.mast_id});
+                    // repo.splice(idx, 1);
+                    // $timeout(function () {
+                    //     repo.splice(idx, 0, data);
+                    // });
+                });
+            });
+        }
+
+        function requestApprove(item) {
+            var _this          = this;
+            var $timeout       = $injector.get('$timeout');
+            var aptUtils       = $injector.get('aptUtils');
+            var gettextCatalog = $injector.get('gettextCatalog');
+            var title          = gettextCatalog.getString('Confirmation Required');
+            var message        = gettextCatalog.getString('Are you sure that you want to request an approval?');
+            aptUtils.showConfirm(title, message, function () {
+                item.requestApprove().then(function (data) {
+                    angular.merge(item, data);
+
+                    var pkey = builder.getPrimaryKey;
+                    var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
+
+                    repo.splice(idx, 1);
+                    $timeout(function () {
+                        repo.splice(idx, 0, data);
+                    });
+
+                });
+            });
+        }
+
 
         function getFlags() {
             return flags;
@@ -235,7 +435,8 @@ function aptCreateModuleService(builder) {
             var data, proceed = true;
 
             if (!editConf) {
-                editConf = {
+                var _key = 'list.editConf';
+                editConf = _.has(builder, _key) ? _.get(builder, _key) : {
                     popup : true,
                     stay  : true,
                     suffix: 'form'
@@ -257,13 +458,15 @@ function aptCreateModuleService(builder) {
             }
 
             if (builder.service.edit.before) {
-                proceed = builder.service.edit.before.call(this, $injector, data, popup);
+                // proceed = builder.service.edit.before.call(this, $injector, data, popup);
+                proceed = builder.service.edit.before.call(this, $injector, data, editConf);
             }
 
             if (proceed) {
                 var _builder = _.merge({_builder: builder}, {
                     data   : data,
                     popup  : editConf.popup,
+                    search : editConf.search ? editConf.search : null,
                     type   : builder.domain,
                     stay   : editConf.stay ? editConf.stay : false,
                     suffixx: _.has(builder, 'form.suffix') && builder.form.suffix

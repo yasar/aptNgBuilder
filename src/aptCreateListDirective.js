@@ -137,14 +137,17 @@ function aptCreateListDirective(builder) {
         }
         var service = $injector.get(serviceName);
         var aptMenu = $injector.get('aptMenu');
+        var aptIcon = $injector.get('aptIcon');
         /**
          * $scope and $attrs are set in the vm (this),
          * so that they can be accessible from within the controller hook defined in the builder block.
          */
         vm.$attrs = $attrs;
 
-        vm.rowMenu              = getRowMenu();
-        vm.rowMenuConfig        = getRowMenuConfig();
+        vm.getDefaultRowMenu = getDefaultRowMenu;
+        vm.rowMenuConfig     = getRowMenuConfig();
+        vm.rowMenu           = getRowMenu();
+
         vm.addNew               = addNew;
         vm.reload               = reloadFn;
         vm.selectItem           = selectItemFn;
@@ -191,18 +194,30 @@ function aptCreateListDirective(builder) {
         }
 
         function editFn(item, popup) {
-
-            /**
-             * edit conf ile dısarıdan popup
-             * suffix
-             * stay durumlarını set edebiliyoruz
-             */
-            if (_.isUndefined(vm.editConf)) {
-                vm.editConf = {};
+            if (_.isFunction(builder.list.onBeforeEdit)) {
+                builder.list.onBeforeEdit.call(this, $injector, $scope, builder, item).then(function () {
+                    proceed();
+                }, function () {
+                    // do nothing
+                });
+            } else {
+                proceed();
             }
-            _.defaults(vm.editConf, {popup: true, suffix: builder.suffix.form, stay: true});
-            //return service.edit(item, popup);
-            return service.edit(item, vm.editConf);
+
+            function proceed() {
+
+                /**
+                 * edit conf ile dısarıdan popup
+                 * suffix
+                 * stay durumlarını set edebiliyoruz
+                 */
+                if (_.isUndefined(vm.editConf)) {
+                    vm.editConf = {};
+                }
+                _.defaults(vm.editConf, {popup: true, suffix: builder.suffix.form, stay: true});
+                //return service.edit(item, popup);
+                return service.edit(item, vm.editConf);
+            }
         }
 
         function deleteFn(item) {
@@ -274,7 +289,8 @@ function aptCreateListDirective(builder) {
             } else if (_.isObject(builder.rowMenu)) {
                 rowMenu = builder.rowMenu;
             } else {
-                rowMenu = getDefaultRowMenu(vm, aptMenu);
+                // rowMenu = getDefaultRowMenu(vm, aptMenu);
+                rowMenu = getDefaultRowMenu();
             }
             return rowMenu;
         }
@@ -298,7 +314,8 @@ function aptCreateListDirective(builder) {
             service.updateStatus(item);
         }
 
-        function getDefaultRowMenu(vm, aptMenu) {
+        // function getDefaultRowMenu(vm, aptMenu) {
+        function getDefaultRowMenu() {
             var rowMenu = aptMenu.Item({
                 name     : 'row-menu',
                 'class'  : 'btn-group-xs',
@@ -308,8 +325,16 @@ function aptCreateListDirective(builder) {
 
             var menuItemEdit = aptMenu.Item({
                 text : 'Edit',
-                icon : 'icon-pencil',
+                icon : aptIcon.get('edit'),//'icon-pencil',
                 auth : [builder.permission('update', 'module')],
+                show : function (item) {
+                    var hasPrimaryValue = !!_.get(item, builder.getPrimaryKey());
+                    if (builder.enableApproval) {
+                        return hasPrimaryValue && ((!item.is_pending_approve && !item.is_approved) || item.is_unlocked);
+                    }
+
+                    return hasPrimaryValue;
+                },
                 click: function (item) {
                     vm.edit(item);
                 }
@@ -317,9 +342,18 @@ function aptCreateListDirective(builder) {
 
             var menuItemDelete = aptMenu.Item({
                 text : 'Delete',
-                icon : 'icon-close2',
+                icon : aptIcon.get('delete'), //'icon-close2',
                 class: 'btn-danger',
                 auth : [builder.permission('delete', 'module')],
+                show : function (item) {
+                    var hasPrimaryValue = !!_.get(item, builder.getPrimaryKey());
+
+                    if (builder.enableApproval) {
+                        return hasPrimaryValue && !item.is_pending_approve && !item.is_approved;
+                    }
+
+                    return hasPrimaryValue;
+                },
                 click: function (item) {
                     vm.delete(item);
                 }
@@ -327,6 +361,89 @@ function aptCreateListDirective(builder) {
 
             rowMenu.addChild(menuItemEdit);
             rowMenu.addChild(menuItemDelete);
+
+            if (builder.enableApproval) {
+                var service = $injector.get(builder.getServiceName('service'));
+
+                var menuApproveRequest       = aptMenu.Item({
+                    text : 'Approve Request',
+                    icon : aptIcon.get('send-request'), //'icon-shield-check',
+                    auth : [builder.permission('u')],
+                    show : function (item) {
+                        var hasPrimaryValue = !!_.get(item, builder.getPrimaryKey());
+                        return hasPrimaryValue && !item.is_pending_approve && !item.is_approved && !item.is_unlocked;
+                    },
+                    click: function (item) {
+                        service.requestApprove(item);
+                    }
+                });
+                var menuCancelApproveRequest = aptMenu.Item({
+                    text : 'Cancel Approve Request',
+                    icon : aptIcon.get('cancel-request'),//'icon-shield-notice',
+                    auth : [builder.permission('u')],
+                    show : function (item) {
+                        return item.is_pending_approve;
+                    },
+                    click: function (item) {
+                        service.cancelApproveRequest(item);
+                    }
+                });
+                var menuUnlockApprove        = aptMenu.Item({
+                    text : 'Unlock Approve',
+                    icon : aptIcon.get('unlock'), //'icon-unlocked',
+                    auth : [builder.permission('a'), builder.permission('a', 's', 'unlock-approve')],
+                    show : function (item) {
+                        return item.is_approved && !item.is_unlocked;
+                    },
+                    click: function (item) {
+                        service.unlockApprove(item);
+                    }
+                });
+                var menuRestoreApprove       = aptMenu.Item({
+                    text : 'Restore Approve',
+                    icon : aptIcon.get('lock'),//'icon-lock',
+                    auth : [builder.permission('a'), builder.permission('a', 's', 'restore-approve')],
+                    show : function (item) {
+                        return item.is_unlocked;
+                    },
+                    click: function (item) {
+                        service.restoreApprove(item);
+                    }
+                });
+                var menuAcceptApproveRequest = aptMenu.Item({
+                    text : 'Accept Approve Request',
+                    icon : aptIcon.get('accept-request'), //' icon-thumbs-up2',
+                    auth : [builder.permission('a'), builder.permission('a', 's', 'confirm-approve-request')],
+                    show : function (item) {
+                        return item.is_pending_approve && !item.is_approved;
+                    },
+                    click: function (item) {
+                        service.acceptApproveRequest(item);
+
+                    }
+                });
+                var menuRejectApproveRequest = aptMenu.Item({
+                    text : 'Reject Approve Request',
+                    icon : aptIcon.get('reject-request'),//' icon-thumbs-down2',
+                    auth : [builder.permission('a'), builder.permission('a', 's', 'confirm-approve-request')],
+                    show : function (item) {
+                        return item.is_pending_approve;
+                    },
+                    click: function (item) {
+                        service.rejectApproveRequest(item);
+                    }
+                });
+
+
+                rowMenu.addChild(menuApproveRequest);
+                rowMenu.addChild(menuCancelApproveRequest);
+                rowMenu.addChild(menuUnlockApprove);
+                rowMenu.addChild(menuRestoreApprove);
+                if (false) {
+                    rowMenu.addChild(menuAcceptApproveRequest);
+                    rowMenu.addChild(menuRejectApproveRequest);
+                }
+            }
 
             return rowMenu;
         }
