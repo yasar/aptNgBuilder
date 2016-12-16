@@ -110,7 +110,7 @@ function aptCreateSelectorDirective(builder) {
         };
 
         function compileFn(element, attrs) {
-            var attrName = builder.getDirectiveName('selector');
+            var attrName           = builder.getDirectiveName('selector');
             element.removeAttr(attrName);
             element.removeAttr('data-' + attrName);
             delete attrs[attrName];
@@ -447,7 +447,7 @@ function aptCreateSelectorDirective(builder) {
                     && !vm.keyword) {
 
                     var modelService = getModelService();
-                    if (modelService.hasOwnProperty('search') && vm.loadIf) {
+                    if (modelService.hasOwnProperty('search') && (_.isUndefined(vm.loadIf) || vm.loadIf)) {
                         var _filterObject = _.merge({limit: _.isUndefined(vm.limit) ? 25 : vm.limit}, vm.filterObject, filterModel);
                         vm.isLoading      = true;
                         modelService.search(_filterObject).then(function (data) {
@@ -643,6 +643,10 @@ function aptCreateSelectorDirective(builder) {
         }
 
         function reload() {
+            /**
+             * `vm.datasource` is externally supplied datasource,
+             * so if it is set then we shouldn't request data from server.
+             */
             if (vm.datasource) {
                 if (vm.datasource != vm.data) {
                     vm.data = vm.datasource;
@@ -661,16 +665,21 @@ function aptCreateSelectorDirective(builder) {
                 return;
             }
 
+            /**
+             * if we are in loading phase, don't start again.
+             */
             if (vm.isLoading) {
                 // deferred.reject('isLoading');
                 return;
             }
 
+            var pkey = builder.getPrimaryKey();
+
             if ((vm.keyword == '' || _.isNull(vm.keyword) || _.isUndefined(vm.keyword))
-                && filterObject.hasOwnProperty(builder.getPrimaryKey())
+                && filterObject.hasOwnProperty(pkey)
                 && _selectedItem
-                && _selectedItem.hasOwnProperty(builder.getPrimaryKey())
-                && filterObject[builder.getPrimaryKey()] == _selectedItem[builder.getPrimaryKey()]) {
+                && _selectedItem.hasOwnProperty(pkey)
+                && filterObject[pkey] == _selectedItem[pkey]) {
                 // deferred.reject();
                 return;
             }
@@ -693,7 +702,7 @@ function aptCreateSelectorDirective(builder) {
                          * set the selectedItem
                          */
                         if (vm.model) {
-                            var findBy    = _.set({}, builder.getPrimaryKey(), parseInt(vm.model));
+                            var findBy    = _.set({}, pkey, parseInt(vm.model));
                             var foundItem = _.find(vm.data, findBy);
                             if (foundItem) {
                                 vm.selectedItem(foundItem);
@@ -740,11 +749,22 @@ function aptCreateSelectorDirective(builder) {
             });
         }
 
+        // function getCombinedFilter() {
+        //     return angular.merge(filterObject, {
+        //         key  : vm.keyword,
+        //         limit: vm.limit
+        //     });
+        // }
+
         function getCombinedFilter() {
-            return angular.merge(filterObject, {
-                key  : vm.keyword,
-                limit: vm.limit
-            });
+            var obj  = {};
+            var pkey = builder.getPrimaryKey();
+
+            if (vm.keyword) obj.keyword = vm.keyword;
+            if (vm.limit) obj.limit = vm.limit;
+            if (vm.model) obj[pkey] = vm.model;
+
+            return obj;
         }
 
         function getModelService() {
