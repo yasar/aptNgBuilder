@@ -110,7 +110,7 @@ function aptCreateSelectorDirective(builder) {
         };
 
         function compileFn(element, attrs) {
-            var attrName           = builder.getDirectiveName('selector');
+            var attrName = builder.getDirectiveName('selector');
             element.removeAttr(attrName);
             element.removeAttr('data-' + attrName);
             delete attrs[attrName];
@@ -756,13 +756,36 @@ function aptCreateSelectorDirective(builder) {
         //     });
         // }
 
+        // function getCombinedFilter() {
+        //     var obj  = {};
+        //     var pkey = builder.getPrimaryKey();
+        //
+        //     if (vm.keyword) obj.keyword = vm.keyword;
+        //     if (vm.limit) obj.limit = vm.limit;
+        //     if (vm.model) obj[pkey] = vm.model;
+        //
+        //     return obj;
+        // }
+
         function getCombinedFilter() {
-            var obj  = {};
+            var obj  = filterObject;
             var pkey = builder.getPrimaryKey();
 
-            if (vm.keyword) obj.keyword = vm.keyword;
-            if (vm.limit) obj.limit = vm.limit;
-            if (vm.model) obj[pkey] = vm.model;
+            if (vm.keyword) {
+                obj.keyword = vm.keyword;
+            } else {
+                delete obj.keyword;
+            }
+            if (vm.limit) {
+                obj.limit = vm.limit;
+            } else {
+                delete obj.limit;
+            }
+            if (vm.model) {
+                obj[pkey] = vm.model;
+            } else {
+                delete obj[pkey];
+            }
 
             return obj;
         }
