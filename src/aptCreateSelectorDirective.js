@@ -612,7 +612,16 @@ function aptCreateSelectorDirective(builder) {
             var builderObj = {
                 type      : builder.domain,
                 suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : builder.suffix.form,
-                data      : _selectedItem.get(),
+
+                /**
+                 * not sure why we have used .get() method here.
+                 * get() method will return a promise
+                 * and it will throw error of `Can not determine how to edit the record!`
+                 * so apparently, we are supposed to use _selectedItem as is.
+                 */
+                // data      : _selectedItem.get(),
+                data      : _selectedItem,
+
                 modalClass: 'slide-up'
             };
             restOp.edit(builderObj);
