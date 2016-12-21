@@ -432,12 +432,12 @@ aptBuilder.prototype.findSegment = function (part, referenceSegment) {
     return _segment;
 };
 
-aptBuilder.prototype.url = function (part) {
+aptBuilder.prototype.url = function (part, searchStr) {
     var path = part;
     if (_.isUndefined(part)) {
         path = _.kebabCase(this.domain);
     }
-    return '/' + _.trim(path, '/');
+    return '/' + _.trim(path, '/') + (searchStr ? '?' + searchStr : '');
 };
 
 // aptBuilder.prototype.url3 = function (part) {

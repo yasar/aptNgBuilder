@@ -114,7 +114,13 @@ function aptCreateModule(builder) {
         }
 
         function registerWidgetCreator($injector, widget) {
-            var targetBuilder        = _.get(window, widget.target + 'Builder');
+            var targetBuilder = _.get(window, widget.target + 'Builder');
+
+            if (_.isUndefined(targetBuilder)) {
+                console.warn('Widget target `' + widget.target + 'Builder` is not available');
+                return;
+            }
+
             var targetBuilderService = $injector.get(targetBuilder.getServiceName('service'));
 
             if (_.has(targetBuilderService, 'registerWidgetCreator')) {
