@@ -610,8 +610,8 @@ function aptCreateSelectorDirective(builder) {
             }
 
             var builderObj = {
-                type      : builder.domain,
-                suffix    : vm.formHandlerSuffix ? vm.formHandlerSuffix : builder.suffix.form,
+                type  : builder.domain,
+                suffix: vm.formHandlerSuffix ? vm.formHandlerSuffix : builder.suffix.form,
 
                 /**
                  * not sure why we have used .get() method here.
@@ -620,7 +620,7 @@ function aptCreateSelectorDirective(builder) {
                  * so apparently, we are supposed to use _selectedItem as is.
                  */
                 // data      : _selectedItem.get(),
-                data      : _selectedItem,
+                data: _selectedItem,
 
                 modalClass: 'slide-up'
             };
@@ -647,11 +647,11 @@ function aptCreateSelectorDirective(builder) {
             return reload();
         }
 
-        function reloadFn() {
-            return reload();
+        function reloadFn(options) {
+            return reload(options);
         }
 
-        function reload() {
+        function reload(options) {
             /**
              * `vm.datasource` is externally supplied datasource,
              * so if it is set then we shouldn't request data from server.
@@ -682,15 +682,18 @@ function aptCreateSelectorDirective(builder) {
                 return;
             }
 
-            var pkey = builder.getPrimaryKey();
+            var pkey  = builder.getPrimaryKey();
+            var force = options && options.force ? options.force : false;
 
-            if ((vm.keyword == '' || _.isNull(vm.keyword) || _.isUndefined(vm.keyword))
-                && filterObject.hasOwnProperty(pkey)
-                && _selectedItem
-                && _selectedItem.hasOwnProperty(pkey)
-                && filterObject[pkey] == _selectedItem[pkey]) {
-                // deferred.reject();
-                return;
+            if (!force) {
+                if ((vm.keyword == '' || _.isNull(vm.keyword) || _.isUndefined(vm.keyword))
+                    && filterObject.hasOwnProperty(pkey)
+                    && _selectedItem
+                    && _selectedItem.hasOwnProperty(pkey)
+                    && filterObject[pkey] == _selectedItem[pkey]) {
+                    // deferred.reject();
+                    return;
+                }
             }
 
             vm.isLoading = true;

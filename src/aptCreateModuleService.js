@@ -436,11 +436,20 @@ function aptCreateModuleService(builder) {
 
             if (!editConf) {
                 var _key = 'list.editConf';
-                editConf = _.has(builder, _key) ? _.get(builder, _key) : {
+                // editConf = _.has(builder, _key) ? _.get(builder, _key) : {
+                //     popup : true,
+                //     stay  : true,
+                //     suffix: 'form'
+                // }
+                editConf = _.get(builder, _key);
+            }
+
+            if (!editConf) {
+                editConf = {
                     popup : true,
                     stay  : true,
                     suffix: 'form'
-                }
+                };
             }
 
             if (editConf.popup) {

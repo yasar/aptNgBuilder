@@ -2,5 +2,5 @@
     <a class="list-group-item"
        ng-repeat="item in <<vm>>.data"
        ng-class="{active: <<vm>>.selectedItem() == item}"
-       ng-click="<<vm>>.selectedItem(item)">{{item._selectorTitle}}</a>
+       ng-click="<<vm>>.selectedItem(item)">{{::item._selectorTitle}}</a>
 </div>

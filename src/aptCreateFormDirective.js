@@ -149,7 +149,8 @@ function aptCreateFormDirective(builder) {
 
         }
 
-        vm.form = new aptUtils.form(builder.domain, vm.item, {
+        // vm.form = new aptUtils.form(builder.domain, vm.item, {
+        vm.form = new aptUtils.form(builder, vm.item, {
             itemId        : vm.itemId,
             watch         : !!vm.watch,
             $scope        : $scope,

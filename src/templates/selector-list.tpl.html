@@ -10,8 +10,8 @@
 					
 					<i class="icon-arrow-small-down position-left"
 					   ng-class="{
-                   'text-grey-300': item!=<<vm>>.selectItem,
-                   'fa-rotate-270 text-primary-300': item==<<vm>>.selectItem
+                   'text-grey-300': item!==<<vm>>.selectItem,
+                   'fa-rotate-270 text-primary-300': item===<<vm>>.selectItem
                    }"></i>
 					<span><a href data-ng-click="<<vm>>.selectedItem(item)">{{item._selectorTitle}}</a></span>
 				</td>
