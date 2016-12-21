@@ -8,12 +8,12 @@
 			       class="form-control no-border alpha-brown" />
 			<span class="input-group-addon alpha-brown no-border">{{this[builder.vm('selector')].dataFiltered.length}}</span>
 			<span class="input-group-btn">
-				<button class="btn btn-default btn-xs ng-animate-disabled"
+				<button class="btn btn-default btn-xs ng-animate-disabled no-border"
 				        ng-hide="this[builder.vm('selector')].isLoading"
 				        type="submit"><i class="icon-search4 icon-sm"></i></button>
-				<button class="btn btn-default btn-xs ng-animate-disabled"
+				<button class="btn btn-default btn-xs ng-animate-disabled no-border"
 				        ng-show="this[builder.vm('selector')].isLoading"
-				        type="button"><i class="spinner icon-spinner"></i></button>
+				        type="button"><i class="spinner icon-spinner icon-sm"></i></button>
 			</span>
 			<div ng-if="this[builder.vm('selector')].showMenu">
 				<div data-selector-menu domain="{{builder.domain}}" model-base="{{builder.vm('selector')}}"></div>
