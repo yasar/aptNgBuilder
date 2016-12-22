@@ -6,6 +6,7 @@
 function aptBuilder(conf) {
     this.domain             = null;
     this.name               = null;
+    this.parentBuilder      = null; // (String) lup module is a good example.
     this.title              = null; // used for menu entries and possible other needs.
     this.package            = null;
     this.icon               = '';
@@ -104,7 +105,7 @@ function aptBuilder(conf) {
         onBeforeAddNew        : null,
         onBeforeReload        : null,
         rowMenu               : null,
-
+        
         /**
          * addNewConf & editConf can be configured as:
          * {
@@ -148,7 +149,7 @@ function aptBuilder(conf) {
         manager: {}
     };
     this.widgets     = [];
-
+    
     $.extend(true, this, conf);
 }
 
@@ -163,13 +164,17 @@ aptBuilder.prototype.getRestRoute   = function () {
     if (this.restRoute) {
         return this.restRoute;
     }
-
+    
     // return (this.package ? (this.package == 'modules' ? '' : this.package + '/') : '') + this.domain;
-    return (this.package ? (this.package == 'modules' ? '/' : this.package + '/') : '/') + this.domain;
+    return (
+               this.package ? (
+                   this.package == 'modules' ? '/' : this.package + '/') : '/') + this.domain;
 };
 
 aptBuilder.prototype.getModuleName = function () {
-    return 'apt.' + (this.package ? (this.package == 'modules' ? '' : this.package + '.') : '') + this.domain;
+    return 'apt.' + (
+            this.package ? (
+                this.package == 'modules' ? '' : this.package + '.') : '') + this.domain;
 };
 
 aptBuilder.prototype.getDirectiveName = function (type) {
@@ -187,7 +192,8 @@ aptBuilder.prototype.getPrimaryKey = function () {
 aptBuilder.prototype.getPath = function (what) {
     var path = this.path;
     if (!path) {
-        path = (this.package ? this.package : 'modules') + '/' + this.domain;
+        path = (
+                   this.package ? this.package : 'modules') + '/' + this.domain;
         if (!_.isUndefined(what)) {
             path += '/directives/' + this.getSuffix(what);
         }
@@ -210,8 +216,9 @@ aptBuilder.prototype.getHelpPath = function (what) {
 aptBuilder.prototype.getTemplateContentFileName = function (what, Templ) {
     var appTemplateKey   = 'appConfig.modules.' + this.domain + '.' + this.getSuffix(what) + '.template';
     var appTemplate      = _.has(Templ, appTemplateKey) ? _.get(Templ, appTemplateKey) : '';
-    var templateFileName = '[' + this.getSuffix(what) + '.content]' + (appTemplate ? '.' + appTemplate : '') + '.tpl.html';
-
+    var templateFileName = '[' + this.getSuffix(what) + '.content]' + (
+            appTemplate ? '.' + appTemplate : '') + '.tpl.html';
+    
     return templateFileName;
 };
 
@@ -226,13 +233,14 @@ aptBuilder.prototype.vm                  = function (type, prop) {
     if (_.isUndefined(prop)) {
         return this.getControllerAsName(type);
     }
-
+    
     return this.getControllerAsName(type) + '.' + prop;
 };
 aptBuilder.prototype.getSuffix           = function (type) {
     var _private = type + '.suffix';
     var _generic = 'suffix.' + type;
-    return _.has(this, _private) ? _.get(this, _private) : (_.has(this, _generic) ? _.get(this, _generic) : type);
+    return _.has(this, _private) ? _.get(this, _private) : (
+        _.has(this, _generic) ? _.get(this, _generic) : type);
     // return _.has(this.suffix, type) ? _.get(this.suffix, type) : type;
 };
 /**
@@ -250,31 +258,50 @@ aptBuilder.prototype.getSuffix           = function (type) {
  */
 aptBuilder.prototype.permission = function (right, type, section) {
     if (right.length == 1) {
-        if (right == 'a') right = 'access';
-        if (right == 'c') right = 'create';
-        if (right == 'r') right = 'delete';
-        if (right == 'u') right = 'update';
-        if (right == 'd') right = 'delete';
+        if (right == 'a') {
+            right = 'access';
+        }
+        if (right == 'c') {
+            right = 'create';
+        }
+        if (right == 'r') {
+            right = 'delete';
+        }
+        if (right == 'u') {
+            right = 'update';
+        }
+        if (right == 'd') {
+            right = 'delete';
+        }
     }
-
+    
     var permission = [right];
-
+    
     if (!type) {
-        type = (right == 'access' ? 'menu' : 'module');
-    } else if (type.length == 1) {
-        if (type == 'e') type = 'menu';
-        if (type == 'o') type = 'module';
-        if (type == 's') type = 'section';
+        type = (
+            right == 'access' ? 'menu' : 'module');
     }
-
+    else if (type.length == 1) {
+        if (type == 'e') {
+            type = 'menu';
+        }
+        if (type == 'o') {
+            type = 'module';
+        }
+        if (type == 's') {
+            type = 'section';
+        }
+    }
+    
     if (type == 'section') {
         permission.push(_.snakeCase(this.domain) + '#' + section);
-    } else {
+    }
+    else {
         permission.push(_.snakeCase(this.domain));
     }
-
+    
     permission.push(type);
-
+    
     // return right + '_' + _.snakeCase(this.domain) + '_' + type;
     return permission.join('_');
 };
@@ -331,19 +358,30 @@ aptBuilder.prototype.permission = function (right, type, section) {
 //     }
 // };
 aptBuilder.prototype.segment = function (part) {
+    var parentBuilder = null;
+    if (this.parentBuilder) {
+        parentBuilder = window[this.parentBuilder];
+    }
+    
     if (_.isUndefined(this.segments)) {
-        // this.segments = ['main', this.package, _.snakeCase(this.domain)];
-        this.segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
-            // package might be empty in some cases, and we don't want them.
-            // this.segments will only contain items that we return true for.
+        //        this.segments = _.remove(['main', this.package, _.camelCase(this.domain)], function (s) {
+        this.segments = _.remove([
+            'main', this.package,
+            ( parentBuilder ? parentBuilder.domain : null),
+            _.camelCase(this.domain)
+        ], function (s) {
+            /**
+             * package might be empty in some cases, and we don't want them.
+             * this.segments will only contain items that we return true for.
+             */
             return s;
         });
     }
-
+    
     if (_.isNumber(part)) {
         return this.segments[part - 1];
     }
-
+    
     /**
      * when part=true, it is used as flag actually.
      * if the condition is not satisfied (abstract and childState)
@@ -353,20 +391,22 @@ aptBuilder.prototype.segment = function (part) {
         part = _.get(this, 'routeConfig.layout.abstract') && _.has(this, 'routeConfig.layout.defaultChild')
             ? _.get(this, 'routeConfig.layout.defaultChild')
             : undefined;
-
+        
         if (part == '') {
             part = undefined;
         }
     }
-
+    
     // return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
-
+    
     var segment = this.findSegment(part);
     if (segment) {
         return segment.redirectTo ? segment.redirectTo.name : segment.name;
     }
-
-    return this.segments.join('.') + (_.isUndefined(part) ? '' : ( '.' + _.trim(part, '.')));
+    
+    return this.segments.join('.') + (
+            _.isUndefined(part) ? '' : (
+           '.' + _.trim(part, '.')));
 };
 // aptBuilder.prototype.segment = function (part) {
 //     var arr = ['main', this.package, _.snakeCase(this.domain), _.trim(part, '.')];
@@ -379,15 +419,15 @@ aptBuilder.prototype.segment = function (part) {
 
 aptBuilder.prototype.fixSegments = function (routes) {
     var _this = this;
-
+    
     if (_.isUndefined(this.segmentRetryQ)) {
         this.segmentRetryQ = [];
     }
-
+    
     if (_.isUndefined(routes)) {
         routes = this.routeConfig;
     }
-
+    
     _.forEach(routes, function (config) {
         if (_.isArray(config)) {
             _.forEach(config, function (value) {
@@ -395,7 +435,7 @@ aptBuilder.prototype.fixSegments = function (routes) {
             });
             return;
         }
-
+        
         if (config.abstract && config.defaultChild) {
             var newSegment = _this.findSegment(config.defaultChild, config);
             if (newSegment) {
@@ -404,7 +444,7 @@ aptBuilder.prototype.fixSegments = function (routes) {
             }
         }
     });
-
+    
     if (this.segmentRetryQ.length) {
         var next = _.pullAt(this.segmentRetryQ, 0);
         this.fixSegments(next);
@@ -418,26 +458,45 @@ aptBuilder.prototype.findSegment = function (part, referenceSegment) {
         return s;
     });
     var prefix   = referenceSegment && referenceSegment.name ? referenceSegment.name : segments.join('.');
-
-    var _search  = prefix + (_.isUndefined(part) ? '' : ('.' + part));
+    
+    var _search  = prefix + (
+            _.isUndefined(part) ? '' : (
+                   '.' + part));
     var _segment = undefined; //because _.find() will return undefined if not found.
-
+    
     // _segment = _.find(routeConfig, {name: _search});
     _segment = _.find(this.routeConfig, {name: _search});
-
+    
     if (_.isUndefined(_segment) && _.has(this.routeConfig, 'others')) {
         _segment = _.find(this.routeConfig.others, {name: _search});
     }
-
+    
     return _segment;
 };
 
+/**
+ *
+ * @param part
+ * @param searchStr
+ * @deprecated
+ */
 aptBuilder.prototype.url = function (part, searchStr) {
+    return this.getUrl(part, searchStr);
+};
+aptBuilder.prototype.getUrl = function (part, searchStr) {
     var path = part;
+    
     if (_.isUndefined(part)) {
         path = _.kebabCase(this.domain);
     }
-    return '/' + _.trim(path, '/') + (searchStr ? '?' + searchStr : '');
+    
+//    if (this.parentBuilder) {
+//        var parentBuilder = window[this.parentBuilder];
+//        path              = parentBuilder.getUrl() + '/' + path;
+//    }
+    
+    return '/' + _.trim(path, '/') + (
+            searchStr ? '?' + searchStr : '');
 };
 
 // aptBuilder.prototype.url3 = function (part) {
@@ -469,12 +528,12 @@ aptBuilder.prototype.getLayoutTemplate = function (n) {
     if (this.layout.template) {
         return this.layout.template;
     }
-
+    
     if (_.isUndefined(n)) {
         // view-segment is 3 when the route is like: main.<package>.<module>
         n = 3;
     }
-
+    
     // return '<div app-view-segment="3"></div>';
     return '<!--' + this.domain + '#layout--><ui-view />';
 };
@@ -484,9 +543,9 @@ aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
     if (!_.isUndefined(result)) {
         return result;
     }
-
+    
     ///
-
+    
     var authorizeFor = _.get(this, 'authorize', false);
     if (authorizeFor !== false) {
         var aptAuthorizationService = $injector.get('aptAuthorizationService');
@@ -504,22 +563,22 @@ aptBuilder.prototype.isAuthorized = function ($injector, checkFor) {
             // authorizeFor = [right, this.domain, type].join('_');
             authorizeFor = this.permission(right, type);
         }
-
+        
         if (!_.isArray(authorizeFor)) {
             authorizeFor = [authorizeFor];
         }
-
+        
         result = aptAuthorizationService.isAuthorized(authorizeFor);
     }
-
+    
     if (_.isUndefined(result)) {
         result = true;
     }
-
+    
     if (this[checkFor]) {
         this[checkFor].isAuthorized = result;
     }
-
+    
     return result;
 };
 /**
@@ -531,11 +590,11 @@ aptBuilder.prototype.getEventName = function () {
 };
 
 aptBuilder.prototype.generate = function (timeout) {
-
+    
     if (sessionStorage && _.has(sessionStorage, 'ngStorage-User')) {
         var user          = JSON.parse(_.get(sessionStorage, 'ngStorage-User'));
         var licenceConfig = user.licenceConfig;
-
+        
         if (_.has(licenceConfig, 'modules.' + this.domain + '.enabled')) {
             var is_enabled = _.get(licenceConfig, 'modules.' + this.domain + '.enabled');
             if (!is_enabled) {
@@ -545,37 +604,38 @@ aptBuilder.prototype.generate = function (timeout) {
     }
     if (!_.isUndefined(timeout)) {
         window.setTimeout(_.bind(proceed, this), timeout);
-    } else {
+    }
+    else {
         proceed.call(this);
     }
-
+    
     function proceed() {
         aptCreateModule(this);
-
+        
         if (this.create.modelService) {
             aptCreateModelService(this);
         }
-
+        
         if (this.create.moduleService) {
             aptCreateModuleService(this);
         }
-
+        
         if (this.create.formDirective) {
             aptCreateFormDirective(this);
         }
-
+        
         if (this.create.listDirective) {
             aptCreateListDirective(this);
         }
-
+        
         if (this.create.selectorDirective) {
             aptCreateSelectorDirective(this);
         }
-
+        
         if (this.create.layoutController) {
             aptCreateLayoutController(this);
         }
-
+        
         if (this.create.managerDirective) {
             aptCreateManagerDirective(this);
         }
@@ -584,8 +644,12 @@ aptBuilder.prototype.generate = function (timeout) {
 
 aptBuilder.utils = {
     makeInt   : function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && !isNaN(item[prop]) && item[prop] !== null) {
                 item[prop] = _.toInteger(item[prop]);
@@ -593,7 +657,9 @@ aptBuilder.utils = {
         });
     },
     makeNumber: function (item, props) {
-        if (!_.isArray(props)) props = [props];
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && !isNaN(item[prop]) && item[prop] !== null) {
                 item[prop] = _.toNumber(item[prop]);
@@ -601,11 +667,16 @@ aptBuilder.utils = {
         });
     },
     makeBool  : function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop)) {
-                item[prop] = !!(item[prop] * 1);
+                item[prop] = !!(
+                item[prop] * 1);
             }
         });
     },
@@ -619,69 +690,94 @@ aptBuilder.utils = {
          *
          * // return this.makeNativeDate(item, props);
          */
-
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = item[prop] ? moment(item[prop], 'YYYY-MM-DD HH:mm:ss') : moment();
             }
         });
     },
-
+    
     makeMoment: function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = item[prop] ? moment(item[prop], 'YYYY-MM-DD HH:mm:ss') : moment();
             }
         });
     },
-
+    
     makeNativeDate: function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 if (_.isDate(item[prop])) {
                     return;
                 }
-
+                
                 // item[prop] = new Date(item[prop]);
                 var t = item[prop].split(/[- :]/);
                 if (t[1]) {
                     // months in javascript starts from 0.
-                    t[1] = (+t[1]) - 1;
+                    t[1] = (
+                               +t[1]) - 1;
                 }
                 item[prop] = eval('new Date(' + t.join(',') + ')');
             }
         });
     },
-
+    
     formatDateTimeForDb: function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = moment(item[prop]).format('YYYY-MM-DD HH:mm');
             }
         });
     },
-
+    
     formatTimeForDb: function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = moment(item[prop]).format('HH:mm:ss');
-
+                
             }
         });
     },
     makeTime       : function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = moment(item[prop], "HH:mm:ss").toDate();
@@ -690,8 +786,12 @@ aptBuilder.utils = {
     },
     makeDateTime   : function (item, props) {
         // console.log('aptBuilder.utils.makeDateTime() should not be used!! Check the code');
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
                 item[prop] = moment(item[prop], "YYYY-MM-DDTHH:mm:ssZ").toDate();
@@ -700,25 +800,36 @@ aptBuilder.utils = {
         });
     },
     makeString     : function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop)) {
                 if (moment.isMoment(item[prop])) {
                     item[prop] = item[prop].format('YYYY-MM-DD HH:mm:ss');
-                } else if (_.isDate(item[prop])) {
+                }
+                else if (_.isDate(item[prop])) {
                     item[prop] = moment(item[prop]).format('YYYY-MM-DD HH:mm:ss');
-                } else if (_.isObject(item[prop])) {
+                }
+                else if (_.isObject(item[prop])) {
                     item[prop] = angular.toJson(item[prop]);
-                } else if (_.isBoolean(item[prop])) {
+                }
+                else if (_.isBoolean(item[prop])) {
                     item[prop] = item[prop] ? '1' : 'null';
                 }
             }
         });
     },
     makeObject     : function (item, props) {
-        if (item == null) return;
-        if (!_.isArray(props)) props = [props];
+        if (item == null) {
+            return;
+        }
+        if (!_.isArray(props)) {
+            props = [props];
+        }
         _.forEach(props, function (prop) {
             if (_.has(item, prop) && !_.isEmpty(item[prop]) && !_.isNull(item[prop])) {
                 try {
