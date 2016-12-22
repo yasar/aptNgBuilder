@@ -13,7 +13,11 @@ function aptCreateLayoutController(builder) {
 
     Controller.$inject = ['$injector', '$scope'];
     function Controller($injector, $scope) {
-
+        
+//        if(builder.parentBuilder){
+//            var parentBuilder = window[builder.parentBuilder];
+//        }
+        
         var aptTempl       = $injector.get('aptTempl');
         var gettextCatalog = $injector.get('gettextCatalog');
         var service        = null;
