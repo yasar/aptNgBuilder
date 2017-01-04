@@ -111,7 +111,8 @@ function aptBuilder(conf) {
          * {
          *      suffix: 'manager',
          *      popup : true,
-         *      stay  : true
+         *      stay  : true,
+         *      ignoreFromServer: false, // is good for edit only, when set to true, the record will be re-requested from the server.
          * }
          */
         addNewConf     : null,
@@ -168,13 +169,13 @@ aptBuilder.prototype.getRestRoute   = function () {
     // return (this.package ? (this.package == 'modules' ? '' : this.package + '/') : '') + this.domain;
     return (
                this.package ? (
-                   this.package == 'modules' ? '/' : this.package + '/') : '/') + this.domain;
+                                this.package == 'modules' ? '/' : this.package + '/') : '/') + this.domain;
 };
 
 aptBuilder.prototype.getModuleName = function () {
     return 'apt.' + (
             this.package ? (
-                this.package == 'modules' ? '' : this.package + '.') : '') + this.domain;
+                             this.package == 'modules' ? '' : this.package + '.') : '') + this.domain;
 };
 
 aptBuilder.prototype.getDirectiveName = function (type) {
@@ -240,7 +241,7 @@ aptBuilder.prototype.getSuffix           = function (type) {
     var _private = type + '.suffix';
     var _generic = 'suffix.' + type;
     return _.has(this, _private) ? _.get(this, _private) : (
-        _.has(this, _generic) ? _.get(this, _generic) : type);
+                                     _.has(this, _generic) ? _.get(this, _generic) : type);
     // return _.has(this.suffix, type) ? _.get(this.suffix, type) : type;
 };
 /**
@@ -490,10 +491,10 @@ aptBuilder.prototype.getUrl = function (part, searchStr) {
         path = _.kebabCase(this.domain);
     }
     
-//    if (this.parentBuilder) {
-//        var parentBuilder = window[this.parentBuilder];
-//        path              = parentBuilder.getUrl() + '/' + path;
-//    }
+    //    if (this.parentBuilder) {
+    //        var parentBuilder = window[this.parentBuilder];
+    //        path              = parentBuilder.getUrl() + '/' + path;
+    //    }
     
     return '/' + _.trim(path, '/') + (
             searchStr ? '?' + searchStr : '');

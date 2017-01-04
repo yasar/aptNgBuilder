@@ -8,27 +8,27 @@ function aptCreateListDirective(builder) {
         builder.suffix = {list: 'list'};
     }
     builder.suffix.List = _.upperFirst(builder.suffix.list);
-
+    
     var path = builder.getPath('list');
-
+    
     angular
         .module(builder.getModuleName())
         .directive(builder.getDirectiveName('list'), fn);
-
-
+    
+    
     fn.$inject = ['$injector'];
     function fn($injector) {
         if (!builder.isAuthorized($injector, 'list')) {
             return aptBuilder.directiveObject.notAuthorized;
         }
-
+        
         return new aptListDirective(builder, $injector);
     }
-
-
+    
+    
     function aptListDirective(builder, $injector) {
         aptCreateListDirective.ctr++;
-
+        
         return {
             restrict        : 'EA', // ACME
             scope           : {
@@ -75,61 +75,62 @@ function aptCreateListDirective(builder) {
             controllerAs    : builder.getControllerAsName('list'),
             bindToController: true
         };
-
+        
         function compileFn(tElement, tAttrs, transclude) {
             if (_.isUndefined(tAttrs.showLoadingIndicator) || tAttrs.showLoadingIndicator != 'false') {
                 $(tElement)
                     .append('<div bs-loading-overlay ' +
                             'bs-loading-overlay-template-url="misc/loading-overlay-template.tpl.html"' +
                             'bs-loading-overlay-reference-id="ref_' + aptCreateListDirective.ctr + '"></div>')
-
+                    
                     // parent needs to have position:relative, overlay will cover the page otherwise.
                     .css('position', 'relative');
             }
-
+            
             var datatable = tElement.find('[apt-datatable], apt-datatable');
-
+            
             if (builder.authorize) {
                 datatable.attr('data-authorize', builder.domain);
             }
-
+            
             ///
-
+            
             var tableOptions = {
                 title: builder.title
             };
-
+            
             if (tAttrs.tableOptions) {
                 tableOptions = _.defaults(angular.fromJson(tAttrs.tableOptions), tableOptions);
             }
             datatable.attr('data-options', angular.toJson(tableOptions));
-
+            
             ///
-
+            
             if (_.isFunction(builder.list.link)) {
                 return function (scope, elem, attrs, ctrls) {
                     builder.list.link.call(this, $injector, builder, scope, elem, attrs, ctrls);
                 };
             }
         }
-
+        
         function templateUrlFn(elem, attrs) {
             var aptTempl       = $injector.get('aptTempl');
             var appTemplateKey = 'appConfig.modules.' + builder.domain + '.' + builder.getSuffix('list') + '.template';
             var name           = builder.suffix.list + (_.has(aptTempl, appTemplateKey) ? '.' + _.get(aptTempl, appTemplateKey) : '');
-
+            
             if (attrs.viewType) {
                 return path + '/' + name + '-' + attrs.viewType + '.tpl.html';
-            } else {
+            }
+            else {
                 return path + '/' + name + '.tpl.html';
             }
         }
-
+        
     }
-
+    
     controllerFn.$inject = ['$scope', '$attrs', '$injector'];
     function controllerFn($scope, $attrs, $injector) {
-
+        
         var vm          = this;
         var serviceName = builder.getServiceName('service');
         if (!$injector.has(builder.getServiceName('service'))) {
@@ -143,26 +144,26 @@ function aptCreateListDirective(builder) {
          * so that they can be accessible from within the controller hook defined in the builder block.
          */
         vm.$attrs = $attrs;
-
+        
         vm.getDefaultRowMenu = getDefaultRowMenu;
         vm.rowMenuConfig     = getRowMenuConfig();
         vm.rowMenu           = getRowMenu();
-
+        
         vm.addNew               = addNew;
         vm.reload               = reloadFn;
         vm.selectItem           = selectItemFn;
         vm.selectedItem         = null;
         vm.showStatusChangeForm = showStatusChangeForm;
-
+        
         if (_.isFunction(builder.list.controller)) {
             builder.list.controller.call(this, $injector, $scope, builder);
         }
-
+        
         // if (_.isUndefined(vm.data)) {
         if (_.isUndefined(vm.data) || _.isNull(vm.data)) {
             vm.data = service.getRepo();
         }
-
+        
         /**
          * if vm.autoload is coming from html-bind, it will be string,
          * if is coming from module>controller then it will be boolean.
@@ -171,11 +172,11 @@ function aptCreateListDirective(builder) {
         vm.autoload = _.isUndefined(vm.autoload) ? true : ((!vm.autoload || vm.autoload == 'false') ? false : true);
         vm.edit   = editFn;
         vm.delete = deleteFn;
-
+        
         if (vm.autoload) {
             load();
         }
-
+        
         if (vm.watchFilter) {
             $scope.$watch(function () {
                 return vm.filter;
@@ -183,16 +184,16 @@ function aptCreateListDirective(builder) {
                 if (_.isUndefined(newVal) || _.isEqual(newVal, oldVal)) {
                     return;
                 }
-
+                
                 load();
             }, true);
         }
-
+        
         function load(useCache) {
             var filter = vm.filter ? vm.filter : null;
             service.loadRepo(filter, useCache, {uniqId: aptCreateListDirective.ctr});
         }
-
+        
         function editFn(item, popup) {
             if (_.isFunction(builder.list.onBeforeEdit)) {
                 builder.list.onBeforeEdit.call(this, $injector, $scope, builder, item).then(function () {
@@ -200,12 +201,15 @@ function aptCreateListDirective(builder) {
                 }, function () {
                     // do nothing
                 });
-            } else {
+            }
+            else {
                 proceed();
             }
-
+            
             function proceed() {
-
+    
+                return service.edit(item);
+                
                 /**
                  * edit conf ile dısarıdan popup
                  * suffix
@@ -214,17 +218,22 @@ function aptCreateListDirective(builder) {
                 if (_.isUndefined(vm.editConf)) {
                     vm.editConf = {};
                 }
-                _.defaults(vm.editConf, {popup: true, suffix: builder.suffix.form, stay: true});
+                _.defaults(vm.editConf, {
+                    popup           : true,
+                    suffix          : builder.suffix.form,
+                    stay            : true,
+                    ignoreFromServer: false
+                });
                 //return service.edit(item, popup);
                 return service.edit(item, vm.editConf);
             }
         }
-
+        
         function deleteFn(item) {
             return service.delete(item);
         }
-
-
+        
+        
         /**
          * smart table add new click oldugunda
          * new form ekranının popup ekranında açılmasını ve
@@ -237,10 +246,11 @@ function aptCreateListDirective(builder) {
                 }, function () {
                     // do nothing
                 });
-            } else {
+            }
+            else {
                 proceed();
             }
-
+            
             function proceed() {
                 if (_.isUndefined(vm.addNewConf)) {
                     vm.addNewConf = {};
@@ -254,7 +264,7 @@ function aptCreateListDirective(builder) {
                     stay      : builder.form.stayOnAdd,
                     mute      : builder.form.muteOnSubmit
                 });
-
+                
                 return service.addNew({
                     initialData: vm.initialData,
                     popup      : vm.addNewConf.popup,
@@ -268,52 +278,55 @@ function aptCreateListDirective(builder) {
                 });
             }
         }
-
+        
         function reloadFn() {
             var proceed = true;
             if (_.isFunction(builder.list.onBeforeReload)) {
                 proceed = builder.list.onBeforeReload.call(this, $injector, vm, $scope);
             }
-
+            
             if (proceed) {
                 load(false);
             }
         }
-
+        
         function getRowMenu() {
             var rowMenu;
             if (_.isFunction(builder.list.rowMenu)) {
                 rowMenu = builder.list.rowMenu.call(this, $injector, vm, $scope);
-            } else if (_.isFunction(builder.rowMenu)) {
+            }
+            else if (_.isFunction(builder.rowMenu)) {
                 rowMenu = builder.rowMenu.call(this, $injector, vm, $scope);
-            } else if (_.isObject(builder.rowMenu)) {
+            }
+            else if (_.isObject(builder.rowMenu)) {
                 rowMenu = builder.rowMenu;
-            } else {
+            }
+            else {
                 // rowMenu = getDefaultRowMenu(vm, aptMenu);
                 rowMenu = getDefaultRowMenu();
             }
             return rowMenu;
         }
-
+        
         function getRowMenuConfig() {
             return {
                 pkey      : builder.getPrimaryKey(),
                 showPKeyId: true
             };
         }
-
+        
         function selectItemFn(item) {
             if (_.isFunction(vm.onSelect)) {
                 vm.onSelect({item: item});
             }
             vm.selectedItem = item;
         }
-
+        
         function showStatusChangeForm(item) {
             var service = $injector.get(builder.getServiceName('service'));
             service.updateStatus(item);
         }
-
+        
         // function getDefaultRowMenu(vm, aptMenu) {
         function getDefaultRowMenu() {
             var rowMenu = aptMenu.Item({
@@ -321,8 +334,8 @@ function aptCreateListDirective(builder) {
                 'class'  : 'btn-group-xs',
                 translate: _.has(vm, 'params.translateMenu') ? _.get(vm, 'params.translateMenu') : true
             });
-
-
+            
+            
             var menuItemEdit = aptMenu.Item({
                 text : 'Edit',
                 icon : aptIcon.get('edit'),//'icon-pencil',
@@ -332,14 +345,14 @@ function aptCreateListDirective(builder) {
                     if (builder.enableApproval) {
                         return hasPrimaryValue && ((!item.is_pending_approve && !item.is_approved) || item.is_unlocked);
                     }
-
+                    
                     return hasPrimaryValue;
                 },
                 click: function (item) {
                     vm.edit(item);
                 }
             });
-
+            
             var menuItemDelete = aptMenu.Item({
                 text : 'Delete',
                 icon : aptIcon.get('delete'), //'icon-close2',
@@ -347,24 +360,24 @@ function aptCreateListDirective(builder) {
                 auth : [builder.permission('delete', 'module')],
                 show : function (item) {
                     var hasPrimaryValue = !!_.get(item, builder.getPrimaryKey());
-
+                    
                     if (builder.enableApproval) {
                         return hasPrimaryValue && !item.is_pending_approve && !item.is_approved;
                     }
-
+                    
                     return hasPrimaryValue;
                 },
                 click: function (item) {
                     vm.delete(item);
                 }
             });
-
+            
             rowMenu.addChild(menuItemEdit);
             rowMenu.addChild(menuItemDelete);
-
+            
             if (builder.enableApproval) {
                 var service = $injector.get(builder.getServiceName('service'));
-
+                
                 var menuApproveRequest       = aptMenu.Item({
                     text : 'Approve Request',
                     icon : aptIcon.get('send-request'), //'icon-shield-check',
@@ -419,7 +432,7 @@ function aptCreateListDirective(builder) {
                     },
                     click: function (item) {
                         service.acceptApproveRequest(item);
-
+                        
                     }
                 });
                 var menuRejectApproveRequest = aptMenu.Item({
@@ -433,8 +446,8 @@ function aptCreateListDirective(builder) {
                         service.rejectApproveRequest(item);
                     }
                 });
-
-
+                
+                
                 rowMenu.addChild(menuApproveRequest);
                 rowMenu.addChild(menuCancelApproveRequest);
                 rowMenu.addChild(menuUnlockApprove);
@@ -444,10 +457,10 @@ function aptCreateListDirective(builder) {
                     rowMenu.addChild(menuRejectApproveRequest);
                 }
             }
-
+            
             return rowMenu;
         }
-
+        
     }
 };
 
