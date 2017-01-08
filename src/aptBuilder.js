@@ -91,6 +91,10 @@ function aptBuilder(conf) {
         stayOnAdd      : true, // good for when in popup
         stayOnUpdate   : true, // good for when in popup
         title          : null,
+        footer         : {
+            left : null, //panel footer content for left side
+            right: null, //panel footer content for right side
+        }
     };
     this.layout      = {
         templConfig: {},

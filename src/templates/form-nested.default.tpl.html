@@ -1,10 +1,10 @@
 <form ng-submit="<<vm>>.form.submit()" role="form" name="{{<<vm>>.form.name}}">
-	<apt-panel class="no-margin no-border" data-form="<<vm>>.form">
+	<apt-panel class="no-margin no-border" data-form="<<vm>>.form" <<builder>>>
 		<apt-panel-body>
 			<div ng-include="'<<contentPath>>'"></div>
 		</apt-panel-body>
 		<apt-panel-footer>
-			<apt-panel-footer-left />
+			<apt-panel-footer-left></apt-panel-footer-left>
 			<apt-panel-footer-right defaults></apt-panel-footer-right>
 		</apt-panel-footer>
 	</apt-panel>
