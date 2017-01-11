@@ -695,6 +695,12 @@ aptBuilder.utils = {
          *
          * // return this.makeNativeDate(item, props);
          */
+    
+        /**
+         * @desc 2017-01-10: seems to be stable with this.
+         * moment object still causes issue on mast selector.
+         */
+        return this.makeNativeDate(item, props);
         
         if (item == null) {
             return;
@@ -702,9 +708,19 @@ aptBuilder.utils = {
         if (!_.isArray(props)) {
             props = [props];
         }
+        
+        var dateFormat;
         _.forEach(props, function (prop) {
             if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = item[prop] ? moment(item[prop], 'YYYY-MM-DD HH:mm:ss') : moment();
+                
+                if (item[prop].length == 10) {
+                    dateFormat = 'YYYY-MM-DD';
+                }
+                else {
+                    dateFormat = 'YYYY-MM-DD HH:mm:ss';
+                }
+                item[prop] = item[prop] ? moment(item[prop], dateFormat) : moment();
+                //item[prop] = item[prop] ? moment(item[prop]) : moment();
             }
         });
     },
