@@ -22,12 +22,12 @@ function aptCreateModelService(builder) {
 
         if (builder.enableApproval) {
             modelDefaults.methods.element.push(
-                {name: 'acceptApprovedRequest', httpMethod: 'put', route: 'approve/accept-request'},
-                {name: 'cancelApproveRequest', httpMethod: 'put', route: 'approve/cancel-request'},
-                {name: 'rejectApprovedRequest', httpMethod: 'put', route: 'approve/reject-request'},
-                {name: 'requestApprove', httpMethod: 'put', route: 'approve/request'},
-                {name: 'restoreApprove', httpMethod: 'put', route: 'approve/restore'},
-                {name: 'unlockApprove', httpMethod: 'put', route: 'approve/unlock'}
+                {name: 'acceptApprovedRequest', httpMethod: 'post', route: 'approve/accept-request'},
+                {name: 'cancelApproveRequest', httpMethod: 'get', route: 'approve/cancel-request'},
+                {name: 'rejectApprovedRequest', httpMethod: 'post', route: 'approve/reject-request'},
+                {name: 'requestApprove', httpMethod: 'get', route: 'approve/request'},
+                {name: 'restoreApprove', httpMethod: 'get', route: 'approve/restore'},
+                {name: 'unlockApprove', httpMethod: 'get', route: 'approve/unlock'}
             );
         }
 
