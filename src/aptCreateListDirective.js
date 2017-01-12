@@ -384,7 +384,8 @@ function aptCreateListDirective(builder) {
                     auth : [builder.permission('u')],
                     show : function (item) {
                         var hasPrimaryValue = !!_.get(item, builder.getPrimaryKey());
-                        return hasPrimaryValue && !item.is_pending_approve && !item.is_approved && !item.is_unlocked;
+//                        return hasPrimaryValue && !item.is_pending_approve && !item.is_approved && !item.is_unlocked;
+                        return hasPrimaryValue && !item.is_pending_approve && (!item.is_approved || item.is_unlocked);
                     },
                     click: function (item) {
                         service.requestApprove(item);

@@ -166,7 +166,7 @@ function aptCreateModuleService(builder) {
                     item.acceptApprovedRequest(item).then(function (data) {
                         angular.merge(item, data);
                         
-                        var pkey = builder.getPrimaryKey;
+                        var pkey = builder.getPrimaryKey();
                         var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
                         repo.splice(idx, 1);
                         $timeout(function () {
@@ -198,7 +198,7 @@ function aptCreateModuleService(builder) {
                 item.cancelApproveRequest().then(function (data) {
                     angular.merge(item, data);
                     
-                    var pkey = builder.getPrimaryKey;
+                    var pkey = builder.getPrimaryKey();
                     var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
                     
                     repo.splice(idx, 1);
@@ -220,7 +220,7 @@ function aptCreateModuleService(builder) {
                 item.rejectApprovedRequest().then(function (data) {
                     angular.merge(item, data);
                     
-                    var pkey = builder.getPrimaryKey;
+                    var pkey = builder.getPrimaryKey();
                     var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
                     
                     repo.splice(idx, 1);
@@ -241,12 +241,14 @@ function aptCreateModuleService(builder) {
             aptUtils.showConfirm(title, message, function () {
                 item.unlockApprove().then(function (data) {
                     angular.merge(item, data);
-                    
-                    // var idx = _.findIndex(repo, {mast_id: data.mast_id});
-                    // repo.splice(idx, 1);
-                    // $timeout(function () {
-                    //     repo.splice(idx, 0, data);
-                    // });
+    
+                    var pkey = builder.getPrimaryKey();
+                    var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
+    
+                    repo.splice(idx, 1);
+                    $timeout(function () {
+                        repo.splice(idx, 0, data);
+                    });
                 });
             });
         }
@@ -260,12 +262,14 @@ function aptCreateModuleService(builder) {
             aptUtils.showConfirm(title, message, function () {
                 item.restoreApprove().then(function (data) {
                     angular.merge(item, data);
-                    
-                    // var idx = _.findIndex(repo, {mast_id: data.mast_id});
-                    // repo.splice(idx, 1);
-                    // $timeout(function () {
-                    //     repo.splice(idx, 0, data);
-                    // });
+    
+                    var pkey = builder.getPrimaryKey();
+                    var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
+    
+                    repo.splice(idx, 1);
+                    $timeout(function () {
+                        repo.splice(idx, 0, data);
+                    });
                 });
             });
         }
@@ -281,7 +285,7 @@ function aptCreateModuleService(builder) {
                 item.requestApprove().then(function (data) {
                     angular.merge(item, data);
                     
-                    var pkey = builder.getPrimaryKey;
+                    var pkey = builder.getPrimaryKey();
                     var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
                     
                     repo.splice(idx, 1);
