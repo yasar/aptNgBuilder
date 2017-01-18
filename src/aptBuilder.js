@@ -1,8 +1,3 @@
-/**
- * Created by yasar on 17.01.2016.
- */
-
-
 function aptBuilder(conf) {
     this.domain             = null;
     this.name               = null;
@@ -270,7 +265,7 @@ aptBuilder.prototype.permission = function (right, type, section) {
             right = 'create';
         }
         if (right == 'r') {
-            right = 'delete';
+            right = 'read';
         }
         if (right == 'u') {
             right = 'update';
