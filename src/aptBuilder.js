@@ -695,8 +695,16 @@ aptBuilder.utils = {
          * @desc 2017-01-10: seems to be stable with this.
          * moment object still causes issue on mast selector.
          */
-        return this.makeNativeDate(item, props);
-        
+        // return this.makeNativeDate(item, props);
+    
+        /**
+         * #desc 2017-01-22: mastContract form, opens up in $dirty state,
+         * and remains so after update operation.
+         *
+         * we have replaced the ae-datetimepicker with moment-picker
+         * which has full support for moment objects.
+         */
+    
         if (item == null) {
             return;
         }
@@ -720,73 +728,73 @@ aptBuilder.utils = {
         });
     },
     
-    makeMoment: function (item, props) {
-        if (item == null) {
-            return;
-        }
-        if (!_.isArray(props)) {
-            props = [props];
-        }
-        _.forEach(props, function (prop) {
-            if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = item[prop] ? moment(item[prop], 'YYYY-MM-DD HH:mm:ss') : moment();
-            }
-        });
-    },
+//    makeMoment: function (item, props) {
+//        if (item == null) {
+//            return;
+//        }
+//        if (!_.isArray(props)) {
+//            props = [props];
+//        }
+//        _.forEach(props, function (prop) {
+//            if (item.hasOwnProperty(prop) && item[prop] !== null) {
+//                item[prop] = item[prop] ? moment(item[prop], 'YYYY-MM-DD HH:mm:ss') : moment();
+//            }
+//        });
+//    },
     
-    makeNativeDate: function (item, props) {
-        if (item == null) {
-            return;
-        }
-        if (!_.isArray(props)) {
-            props = [props];
-        }
-        _.forEach(props, function (prop) {
-            if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                if (_.isDate(item[prop])) {
-                    return;
-                }
-                
-                // item[prop] = new Date(item[prop]);
-                var t = item[prop].split(/[- :]/);
-                if (t[1]) {
-                    // months in javascript starts from 0.
-                    t[1] = (
-                               +t[1]) - 1;
-                }
-                item[prop] = eval('new Date(' + t.join(',') + ')');
-            }
-        });
-    },
+//    makeNativeDate: function (item, props) {
+//        if (item == null) {
+//            return;
+//        }
+//        if (!_.isArray(props)) {
+//            props = [props];
+//        }
+//        _.forEach(props, function (prop) {
+//            if (item.hasOwnProperty(prop) && item[prop] !== null) {
+//                if (_.isDate(item[prop])) {
+//                    return;
+//                }
+//
+//                // item[prop] = new Date(item[prop]);
+//                var t = item[prop].split(/[- :]/);
+//                if (t[1]) {
+//                    // months in javascript starts from 0.
+//                    t[1] = (
+//                               +t[1]) - 1;
+//                }
+//                item[prop] = eval('new Date(' + t.join(',') + ')');
+//            }
+//        });
+//    },
     
-    formatDateTimeForDb: function (item, props) {
-        if (item == null) {
-            return;
-        }
-        if (!_.isArray(props)) {
-            props = [props];
-        }
-        _.forEach(props, function (prop) {
-            if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = moment(item[prop]).format('YYYY-MM-DD HH:mm');
-            }
-        });
-    },
+//    formatDateTimeForDb: function (item, props) {
+//        if (item == null) {
+//            return;
+//        }
+//        if (!_.isArray(props)) {
+//            props = [props];
+//        }
+//        _.forEach(props, function (prop) {
+//            if (item.hasOwnProperty(prop) && item[prop] !== null) {
+//                item[prop] = moment(item[prop]).format('YYYY-MM-DD HH:mm');
+//            }
+//        });
+//    },
     
-    formatTimeForDb: function (item, props) {
-        if (item == null) {
-            return;
-        }
-        if (!_.isArray(props)) {
-            props = [props];
-        }
-        _.forEach(props, function (prop) {
-            if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = moment(item[prop]).format('HH:mm:ss');
-                
-            }
-        });
-    },
+//    formatTimeForDb: function (item, props) {
+//        if (item == null) {
+//            return;
+//        }
+//        if (!_.isArray(props)) {
+//            props = [props];
+//        }
+//        _.forEach(props, function (prop) {
+//            if (item.hasOwnProperty(prop) && item[prop] !== null) {
+//                item[prop] = moment(item[prop]).format('HH:mm:ss');
+//
+//            }
+//        });
+//    },
     makeTime       : function (item, props) {
         if (item == null) {
             return;
@@ -800,21 +808,21 @@ aptBuilder.utils = {
             }
         });
     },
-    makeDateTime   : function (item, props) {
-        // console.log('aptBuilder.utils.makeDateTime() should not be used!! Check the code');
-        if (item == null) {
-            return;
-        }
-        if (!_.isArray(props)) {
-            props = [props];
-        }
-        _.forEach(props, function (prop) {
-            if (item.hasOwnProperty(prop) && item[prop] !== null) {
-                item[prop] = moment(item[prop], "YYYY-MM-DDTHH:mm:ssZ").toDate();
-                ;
-            }
-        });
-    },
+//    makeDateTime   : function (item, props) {
+//        // console.log('aptBuilder.utils.makeDateTime() should not be used!! Check the code');
+//        if (item == null) {
+//            return;
+//        }
+//        if (!_.isArray(props)) {
+//            props = [props];
+//        }
+//        _.forEach(props, function (prop) {
+//            if (item.hasOwnProperty(prop) && item[prop] !== null) {
+//                item[prop] = moment(item[prop], "YYYY-MM-DDTHH:mm:ssZ").toDate();
+//                ;
+//            }
+//        });
+//    },
     makeString     : function (item, props) {
         if (item == null) {
             return;
