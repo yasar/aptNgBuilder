@@ -40,68 +40,75 @@ function aptCreateSelectorDirective(builder) {
             // scope           : {},
             scope           : true,
             bindToController: {
-                model            : '=?ngModel',
-                filterObject     : '<?',
+                model             : '=?ngModel',
+                filterObject      : '<?',
                 // filterGroup      : '@?',
                 // filterClass      : '@?',
-                filterRequired   : '<?',
-                loadIf           : '<?',
-                selectItem       : '=?',
-                onChange         : '&?onChange',
-                onClick          : '&?onClick',
-                onChange2        : '&?ngChange', /*see the comment below*/
-                onClick2         : '&?ngClick', /*see the comment below*/
-                onLoad           : '&?',
-                onReset          : '&?',
-                readonly         : '@?',
-                viewType         : '@?',
-                label            : '@?',
-                placeholder      : '@?',
-                limit            : '@?',
-                locked           : '@?',
+                filterRequired    : '<?',
+                loadIf            : '<?',
+                selectItem        : '=?',
+                onChange          : '&?onChange',
+                onClick           : '&?onClick',
+                onChange2         : '&?ngChange', /*see the comment below*/
+                onClick2          : '&?ngClick', /*see the comment below*/
+                onLoad            : '&?',
+                onReset           : '&?',
+                readonly          : '@?',
+                viewType          : '@?',
+                label             : '@?',
+                placeholder       : '@?',
+                limit             : '@?',
+                locked            : '@?',
                 /**
                  *
                  *
                  * check the builder config for more info and options for showMenu
                  */
-                showMenu         : '<?',
-                subRoute         : '@?',
-                formHandlerSuffix: '@',
+                showMenu          : '<?',
+                subRoute          : '@?',
+                formHandlerSuffix : '@',
                 /**
                  *
                  *
                  * is good to identify when we have multiple
                  * elements of same type within the form
                  */
-                identifier       : '@',
-                isMultiple       : '@?',
-                translate        : '<?',
-                translateContext : '@?',
-                searchable       : '<?',
+                identifier        : '@',
+                isMultiple        : '@?',
+                translate         : '<?',
+                translateContext  : '@?',
+                searchable        : '<?',
                 /**
                  *
                  *
                  * can be used to assign `pre-scrollable` to the holder class
                  * when view type is `list`. so that search box will stay above the scrolling table.
                  */
-                listClass        : '@?',
-                datasource       : '=?',
+                listClass         : '@?',
+                datasource        : '=?',
                 /**
                  *
                  *
                  * when subscribed to `add`, the selector will populate the newly added records
                  * this will listen to event fired at moduleService
                  */
-                subscribeAdd     : '<?', // true|false, default: false
-                helpText         : '@',
+                subscribeAdd      : '<?', // true|false, default: false
+                helpText          : '@',
                 /**
                  *
                  *
                  * in case we need to use custom template for items
                  */
-                itemTemplate     : '@?',
-                itemScopeId      : '@?',
-                customFilter     : '@?'
+                itemTemplate      : '@?',
+                itemScopeId       : '@?',
+                customFilter      : '@?',
+                /**
+                 *
+                 *
+                 * issue #2288: in rare occasions, we may have to use `value` field as primary_key (for type table i.e.)
+                 * in this case, we have to override the `builder.getPrimaryKey()` with provided field name.
+                 */
+                overridePrimaryKey: '@?'
             },
             controller      : controllerFn,
             controllerAs    : builder.getControllerAsName('selector'),
@@ -389,7 +396,7 @@ function aptCreateSelectorDirective(builder) {
                 }
                 
                 if (!_.isEqual(newVal.filter, oldVal.filter)) {
-                    delete filterObject[builder.getPrimaryKey()];
+                    delete filterObject[getPrimaryKey()];
                     angular.merge(filterObject, newVal.filter);
                     reload();
                 }
@@ -403,7 +410,7 @@ function aptCreateSelectorDirective(builder) {
                  */
                 else if (!_.isEqual(newVal.model, oldVal.model)) {
                     // debugger;
-                    filterObject[builder.getPrimaryKey()] = newVal.model;
+                    filterObject[getPrimaryKey()] = newVal.model;
                     initModelValue();
                 }
                 
@@ -440,7 +447,17 @@ function aptCreateSelectorDirective(builder) {
             if (!_.isUndefined(vm.model)) {
                 
                 var filterModel = {};
-                _.set(filterModel, builder.getPrimaryKey(), vm.model);
+                _.set(filterModel, getPrimaryKey(),
+                    /**
+                     * if overridePrimaryKey is provided then
+                     * we need to make sure this is set as string
+                     */
+                    vm.overridePrimaryKey ? vm.model.toString() : vm.model
+                );
+                
+                //                if (vm.overridePrimaryKey) {
+                //                    _.set(filterModel, 'pkey', vm.overridePrimaryKey);
+                //                }
                 
                 /**
                  * check if the model value is available in the option list
@@ -460,7 +477,12 @@ function aptCreateSelectorDirective(builder) {
                     
                     var modelService = getModelService();
                     if (modelService.hasOwnProperty('search') && (_.isUndefined(vm.loadIf) || vm.loadIf)) {
-                        var _filterObject = _.merge({limit: _.isUndefined(vm.limit) ? 25 : vm.limit}, vm.filterObject, filterModel);
+                        var _filterObject = _.merge(
+                            {limit: _.isUndefined(vm.limit) ? 25 : vm.limit},
+                            vm.filterObject,
+                            filterModel,
+                            (vm.overridePrimaryKey ? {'pkey': vm.overridePrimaryKey} : {})
+                        );
                         vm.isLoading      = true;
                         modelService.search(_filterObject).then(function (data) {
                             /**
@@ -551,14 +573,16 @@ function aptCreateSelectorDirective(builder) {
                  * note that aptField directive may broadcast('reset-model')
                  */
                 if (value !== null) {
-                    vm.model = _selectedItem[builder.getPrimaryKey()];
+                    vm.model = _selectedItem[getPrimaryKey()];
                     
                 }
                 else {
                     vm.model = null;
                 }
                 
-                // todo: make sure this does not break anything
+                /**
+                 * without this, formController does not update its $dirty state.
+                 */
                 if (vm.$ngModelController) {
                     vm.$ngModelController.$setViewValue(vm.model);
                 }
@@ -663,8 +687,8 @@ function aptCreateSelectorDirective(builder) {
                 return;
             }
             
-            vm.keyword                            = keyword;
-            filterObject[builder.getPrimaryKey()] = vm.model;
+            vm.keyword                    = keyword;
+            filterObject[getPrimaryKey()] = vm.model;
             
             return reload();
         }
@@ -704,7 +728,7 @@ function aptCreateSelectorDirective(builder) {
                 return;
             }
             
-            var pkey  = builder.getPrimaryKey();
+            var pkey  = getPrimaryKey();
             var force = options && options.force ? options.force : false;
             
             if (!force) {
@@ -792,7 +816,7 @@ function aptCreateSelectorDirective(builder) {
         
         // function getCombinedFilter() {
         //     var obj  = {};
-        //     var pkey = builder.getPrimaryKey();
+        //     var pkey = getPrimaryKey();
         //
         //     if (vm.keyword) obj.keyword = vm.keyword;
         //     if (vm.limit) obj.limit = vm.limit;
@@ -803,7 +827,7 @@ function aptCreateSelectorDirective(builder) {
         
         function getCombinedFilter() {
             var obj  = filterObject;
-            var pkey = builder.getPrimaryKey();
+            var pkey = getPrimaryKey();
             
             if (vm.keyword) {
                 obj.keyword = vm.keyword;
@@ -839,7 +863,7 @@ function aptCreateSelectorDirective(builder) {
             //  * set the selectedItem
             //  */
             // if (vm.model) {
-            //     var findBy    = _.set({}, builder.getPrimaryKey(), parseInt(vm.model));
+            //     var findBy    = _.set({}, getPrimaryKey(), parseInt(vm.model));
             //     var foundItem = _.find(vm.data, findBy);
             //     if (foundItem) {
             //         vm.selectedItem(foundItem);
@@ -857,6 +881,9 @@ function aptCreateSelectorDirective(builder) {
             
         }
         
+        function getPrimaryKey() {
+            return vm.overridePrimaryKey ? vm.overridePrimaryKey : builder.getPrimaryKey();
+        }
     }
 }
 aptCreateSelectorDirective.ctr = 0;
