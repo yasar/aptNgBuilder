@@ -452,7 +452,13 @@ function aptCreateSelectorDirective(builder) {
                      * if overridePrimaryKey is provided then
                      * we need to make sure this is set as string
                      */
-                    vm.overridePrimaryKey ? vm.model.toString() : vm.model
+                    vm.overridePrimaryKey
+                        /**
+                         * vm.model may contain null value
+                         * so ensure it has some value before applying toString method
+                         */
+                        ? (_.isNull(vm.model) ? null : vm.model.toString())
+                        : vm.model
                 );
                 
                 //                if (vm.overridePrimaryKey) {
