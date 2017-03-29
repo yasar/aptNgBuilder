@@ -241,10 +241,10 @@ function aptCreateModuleService(builder) {
             aptUtils.showConfirm(title, message, function () {
                 item.unlockApprove().then(function (data) {
                     angular.merge(item, data);
-    
+                    
                     var pkey = builder.getPrimaryKey();
                     var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
-    
+                    
                     repo.splice(idx, 1);
                     $timeout(function () {
                         repo.splice(idx, 0, data);
@@ -262,10 +262,10 @@ function aptCreateModuleService(builder) {
             aptUtils.showConfirm(title, message, function () {
                 item.restoreApprove().then(function (data) {
                     angular.merge(item, data);
-    
+                    
                     var pkey = builder.getPrimaryKey();
                     var idx  = _.findIndex(repo, {pkey: _.get(data, pkey)});
-    
+                    
                     repo.splice(idx, 1);
                     $timeout(function () {
                         repo.splice(idx, 0, data);
@@ -439,26 +439,19 @@ function aptCreateModuleService(builder) {
         
         
         function edit(item, editConf) {
-            var data, proceed = true;
+            var data, proceed   = true;
+            var defaultEditConf = {
+                popup           : true,
+                stay            : true,
+                suffix          : 'form',
+                ignoreFromServer: false
+            };
             
             if (!editConf) {
-                var _key = 'list.editConf';
-                // editConf = _.has(builder, _key) ? _.get(builder, _key) : {
-                //     popup : true,
-                //     stay  : true,
-                //     suffix: 'form'
-                // }
-                editConf = _.get(builder, _key);
+                editConf = _.get(builder, 'list.editConf') || {};
             }
             
-            if (!editConf) {
-                editConf = {
-                    popup           : true,
-                    stay            : true,
-                    suffix          : 'form',
-                    ignoreFromServer: false
-                };
-            }
+            editConf = _.defaults(editConf, defaultEditConf);
             
             if (editConf.popup) {
                 if (angular.isObject(item)) {
