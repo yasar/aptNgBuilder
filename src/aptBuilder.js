@@ -727,6 +727,9 @@ aptBuilder.utils = {
             }
         });
     },
+    makeNativeDate: function (item, props) {
+        return this.makeDate(item, props);
+    },
     
 //    makeMoment: function (item, props) {
 //        if (item == null) {
