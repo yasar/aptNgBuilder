@@ -867,8 +867,8 @@ aptBuilder.utils = {
         });
     },
     fixCoordinate  : function (item) {
-        item.latitude  = _.replace(item.latitude, ',', '.') * 1;
-        item.longitude = _.replace(item.longitude, ',', '.') * 1;
+        item.latitude  = _.replace(item.latitude, ',', '.');
+        item.longitude = _.replace(item.longitude, ',', '.');
     }
 };
 
