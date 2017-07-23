@@ -1,7 +1,7 @@
 # Usage Examples
 
 Create a new directive
-```
+```javascript
 (function () {
     var builder = myBuilder; // change the builder name
     var _name   = 'myDirective'; // change the directive name
