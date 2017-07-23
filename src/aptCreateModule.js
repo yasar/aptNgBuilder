@@ -269,7 +269,13 @@ function aptCreateModule(builder) {
                 addState(_name, _template);
             }
 
-            else if (builder.create.managerDirective) {
+            /**
+             * when we have both list and manager directives
+             * and say the defaultChild is manager, then we need to create route for both list and manager.
+             * so, that's why we shouldn't use the `else` below.
+             */
+            // else if (builder.create.managerDirective) {
+            if (builder.create.managerDirective) {
                 _name     = 'manager';
                 _template = '<' + _.kebabCase(builder.getDirectiveName(_name)) + ' />';
                 if (builder.manager.templateWrapper) {
