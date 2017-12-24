@@ -3,27 +3,26 @@
  */
 
 function aptCreateSelectorDirective(builder) {
-    
+
     var suffix   = builder.getSuffix('selector');
     var path     = builder.getPath(suffix);
     var pathSelf = 'aptNgBuilder/templates';
-    
-    angular
-        .module(builder.getModuleName())
-        /**
-         * not sure if we should use `suffix` instead of 'selector' below (?!)
-         */
-        .directive(builder.getDirectiveName('selector'), fn);
-    
+
+    angular.module(builder.getModuleName())
+            /**
+             * not sure if we should use `suffix` instead of 'selector' below (?!)
+             */.directive(builder.getDirectiveName('selector'), fn);
+
     fn.$inject = ['$injector'];
+
     function fn($injector) {
         if (!builder.isAuthorized($injector, 'list')) {
             return aptBuilder.directiveObject.notAuthorized;
         }
-        
+
         return new aptSelectorDirective(builder, $injector);
     }
-    
+
     function aptSelectorDirective(builder, $injector) {
         aptCreateSelectorDirective.ctr++;
         return {
@@ -115,23 +114,23 @@ function aptCreateSelectorDirective(builder) {
             compile         : compileFn,
             require         : [builder.getDirectiveName('selector'), '?ngModel', '^^?form']
         };
-        
+
         function compileFn(element, attrs) {
             var attrName = builder.getDirectiveName('selector');
             element.removeAttr(attrName);
             element.removeAttr('data-' + attrName);
             delete attrs[attrName];
             delete attrs.$attr[attrName];
-            
+
             // if (attrs.itemTemplate) {
             //     attrs.itemTemplate = attrs.itemTemplate.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
             // }
-            
+
             return {
                 post: linkFn
             };
         }
-        
+
         function linkFn($scope, element, attrs, ctrls) {
             var vm                 = ctrls[0];
             var $ngModelController = ctrls[1];
@@ -147,12 +146,12 @@ function aptCreateSelectorDirective(builder) {
             var tpl;
             var found          = false;
             var findNgModelStr = '[data-ng-model],[ng-model]';
-            
+
             vm.$ngModelController = $ngModelController;
             vm.builder            = builder;
-            
+
             ///
-            
+
             if (attrs.readonly == 'true') {
                 if (!found && (tpl = $templateCache.get(path + '/' + suffix + '-readonly.tpl.html'))) {
                     found = true;
@@ -177,20 +176,20 @@ function aptCreateSelectorDirective(builder) {
                     found = true;
                 }
             }
-            
+
             ///
-            
+
             if (!found) {
                 console.error('Template can not be found: `' + tpl + '`');
                 return;
             }
-            
+
             tpl = tpl.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
             tpl = tpl.replace(/<<builder>>/g, builder.getBuilderName());
             tpl = tpl.replace(/<<domain>>/g, builder.domain);
             tpl = tpl.replace(/<<multiple>>/g, (vm.isMultiple ? 'multiple' : ''));
             tpl = tpl.replace(/<<customFilter>>/g, (vm.customFilter ? '|' + vm.customFilter : ''));
-            
+
             /**
              * this didnt work as expected. so commenting it out.
              * later, we may have to find a work around for this stiuation.
@@ -198,23 +197,23 @@ function aptCreateSelectorDirective(builder) {
             if (vm.itemTemplate) {
                 vm.itemTemplateFixed = vm.itemTemplate.replace(/<<vm>>/g, builder.getControllerAsName('selector'));
             }
-            
+
             element.contents().remove();
             // element.append($compile(tpl)($scope));
-            
+
             var $tpl = $(tpl);
-            
+
             // make sure `required` attribute is transferred.
             // also note that, we are looking for the element having ng-model as
             // it is the one obligated to do the validation
             if (attrs.required) {
                 $tpl.find(findNgModelStr).attr('required', attrs.required);
             }
-            
+
             var compiledElement = $compile($tpl)($scope)
             // element.replaceWith(compiledElement);
             element.append(compiledElement);
-            
+
             if ($formController) {
                 if (element.is('[ng-model]') || element.is('[data-ng-model]')) {
                     addControl(element);
@@ -231,7 +230,7 @@ function aptCreateSelectorDirective(builder) {
                 else {
                     _.map(compiledElement.find(findNgModelStr), addControl);
                 }
-                
+
                 function addControl(formElement) {
                     try {
                         var $ngModelController = $(formElement).data().$ngModelController;
@@ -240,37 +239,38 @@ function aptCreateSelectorDirective(builder) {
                     }
                 }
             }
-            
-            
+
+
             ///
-            
+
             if (_.isFunction(vm.onChange)) {
                 element.find('select').on('change', vm.onChange);
             }
-            
+
             if (attrs.class) {
                 element.find('select, .list-group, .input-group').addClass(attrs.class);
                 element.removeClass(attrs.class);
             }
-            
+
             if (attrs.style) {
                 element.find('select, .list-group, .input-group').attr('style', attrs.style);
                 element.removeAttr('style');
             }
-            
-            
+
+
             ///
-            
+
             // $ngModelController.$render = function() {
             //     iElement.find('div').text($ngModelController.$viewValue);
             // };
-            
+
             // selectorCtrl.setNgModelController($ngModelController);
-            
+
         }
     }
-    
+
     controllerFn.$inject = ['$injector', '$scope'];
+
     function controllerFn($injector, $scope) {
         /**
          * initialization
@@ -290,21 +290,20 @@ function aptCreateSelectorDirective(builder) {
         // var datasource              = null;
         var filterObject            = {};
         var isModelValueInitialized = false;
-        
+
         $scope.$window = $window;
-        
+
         vm.$ngModelController = null;
         //
         // vm.setNgModelController = setNgModelController;
-        
+
         /**
          * this is a workaround.
          * originally we had ngChange/ngClick attributes on the directive,
          * however, it is observed that when used within apt-field, since we don't use ng-model with apt-field
-         * ng-change or ng-click raises the error: "Controller 'ngModel', required by directive 'ngChange', can't be found!"
-         * in order to fix this issue we should use on-change and on-click attributes.
-         * to make the code backward-compatible ng-change is bound to onChange2
-         * and here we are fixing these attributes.
+         * ng-change or ng-click raises the error: "Controller 'ngModel', required by directive 'ngChange', can't be
+         * found!" in order to fix this issue we should use on-change and on-click attributes. to make the code
+         * backward-compatible ng-change is bound to onChange2 and here we are fixing these attributes.
          */
         if (vm.onChange2) {
             vm.onChange = vm.onChange2;
@@ -312,7 +311,7 @@ function aptCreateSelectorDirective(builder) {
         if (vm.onClick2) {
             vm.onClick = vm.onClick2;
         }
-        
+
         /**
          * this is required for selector-menu directive.
          * it will use builder.permission method to get the correct permission string
@@ -323,7 +322,7 @@ function aptCreateSelectorDirective(builder) {
          * but not to a vm under any parents' scope.
          */
         $scope.builder = builder;
-        
+
         vm.showMenu        = vm.showMenu || _.get(builder, 'selector.showMenu') || true;
         // vm.isAuthorized    = builder.authorize ? builder.isAuthorized('list') : true;
         vm.searchable      = _.isUndefined(vm.searchable) ? true : vm.searchable;
@@ -336,7 +335,7 @@ function aptCreateSelectorDirective(builder) {
         vm.edit            = editFn;
         vm.reload          = reloadFn;
         vm.getFilterObject = getFilterObject;
-        
+
         vm.ctr          = aptCreateSelectorDirective.ctr;
         vm.readonlyData = {};
         vm.data         = [];
@@ -348,35 +347,35 @@ function aptCreateSelectorDirective(builder) {
          * if only `attr.translate=false` is provided then the translation will be disabled
          */
         vm.translate = (_.isUndefined(vm.translate) || vm.translate !== false) ? true : false;
-        
+
         var defaultPlaceholder = '...';
         vm.placeholder         = vm.placeholder || defaultPlaceholder;
         if (vm.placeholder != defaultPlaceholder && vm.translate) {
             vm.placeholder = gettextCatalog.getString(vm.placeholder);
         }
-        
+
         vm.x_helpText = vm.helpText;
         if (vm.helpText && vm.translate) {
             vm.x_helpText = gettextCatalog.getString(vm.helpText);
         }
-        
+
         if (_.get(builder, 'disable.addNew') === true) {
             delete vm.addNew;
         }
-        
+
         if (_.get(builder, 'disable.edit') === true) {
             delete vm.edit;
         }
-        
+
         ///
-        
+
         init();
-        
+
         if (_.isFunction(builder.selector.controller)) {
             builder.selector.controller.call(this, $injector, $scope, builder);
         }
-        
-        
+
+
         // if ((!_.isUndefined(vm.filterRequired) && !vm.filterRequired) || vm.loadIf) {
         if (_.isUndefined(vm.filterRequired) || !vm.filterRequired || vm.loadIf) {
             /**
@@ -384,8 +383,8 @@ function aptCreateSelectorDirective(builder) {
              */
             reload();
         }
-        
-        
+
+
         $scope.$watch(
             function () {
                 return {filter: vm.filterObject, model: vm.model};
@@ -394,13 +393,13 @@ function aptCreateSelectorDirective(builder) {
                 if (_.isUndefined(newVal) || _.isEqual(newVal, oldVal)) {
                     return;
                 }
-                
+
                 if (!_.isEqual(newVal.filter, oldVal.filter)) {
                     delete filterObject[getPrimaryKey()];
                     angular.merge(filterObject, newVal.filter);
                     reload();
                 }
-                
+
                 /**
                  * following block is causing the setter() to execute twice.
                  * we should monitor the use-case of this block in different places,
@@ -413,20 +412,20 @@ function aptCreateSelectorDirective(builder) {
                     filterObject[getPrimaryKey()] = newVal.model;
                     initModelValue();
                 }
-                
+
             }, true
         );
-        
+
         if (vm.subscribeAdd) {
             NotifyingService.subscribe($scope, builder.domain + ':added', function (event, data) {
                 vm.data.push(data.data);
             });
         }
-        
+
         function getFilterObject() {
             return filterObject;
         }
-        
+
         // function setNgModelController(ctrl) {
         //     $ngModelController = ctrl;
         //
@@ -434,9 +433,9 @@ function aptCreateSelectorDirective(builder) {
         //         vm.model = $ngModelController.$viewValue;
         //     };
         // }
-        
+
         function initModelValue() {
-            
+
             /**
              * suppose we have set a variable having initial value of `null` for vm.model,
              * checking model against `if(vm.model)` will not pass through.
@@ -445,26 +444,26 @@ function aptCreateSelectorDirective(builder) {
              */
             // if (vm.model) {
             if (!_.isUndefined(vm.model)) {
-                
+
                 var filterModel = {};
                 _.set(filterModel, getPrimaryKey(),
-                    /**
-                     * if overridePrimaryKey is provided then
-                     * we need to make sure this is set as string
-                     */
-                    vm.overridePrimaryKey
-                        /**
-                         * vm.model may contain null value
-                         * so ensure it has some value before applying toString method
-                         */
-                        ? (_.isNull(vm.model) ? null : vm.model.toString())
-                        : vm.model
+                      /**
+                       * if overridePrimaryKey is provided then
+                       * we need to make sure this is set as string
+                       */
+                      vm.overridePrimaryKey
+                          /**
+                           * vm.model may contain null value
+                           * so ensure it has some value before applying toString method
+                           */
+                          ? (_.isNull(vm.model) ? null : vm.model.toString())
+                          : vm.model
                 );
-                
+
                 //                if (vm.overridePrimaryKey) {
                 //                    _.set(filterModel, 'pkey', vm.overridePrimaryKey);
                 //                }
-                
+
                 /**
                  * check if the model value is available in the option list
                  * or if we have data that satisfies filter criterias.
@@ -474,13 +473,13 @@ function aptCreateSelectorDirective(builder) {
                     && vm.searchable !== false
                     && _.findIndex(vm.data, filterModel) == -1
                     && _.findIndex(vm.data, filterObject) == -1
-                
+
                     /**
                      * if vm.keyword is set, it means we have already performed the search query
                      * and we should have the result set from the search.
                      */
                     && !vm.keyword) {
-                    
+
                     var modelService = getModelService();
                     if (modelService.hasOwnProperty('search') && (_.isUndefined(vm.loadIf) || vm.loadIf)) {
                         var _filterObject = _.merge(
@@ -493,15 +492,18 @@ function aptCreateSelectorDirective(builder) {
                         modelService.search(_filterObject).then(function (data) {
                             /**
                              * dont empty the vm.data, just merge with coming data.
+                             *
+                             * PS1: angular.merge() converts moment-objects to plain-object.
                              */
-                            angular.merge(vm.data, data);
-                            
+                            // angular.merge(vm.data, data);
+                            _.merge(vm.data, data);
+
                             /**
                              * we need this to show the location name on initial load
                              * it will be shown as plain-text in a span element
                              */
                             vm.readonlyData = data[0];
-                            
+
                             /**
                              * this is required for the `change` menu-option to function properly
                              */
@@ -517,14 +519,14 @@ function aptCreateSelectorDirective(builder) {
                         });
                     }
                 }
-                
+
                 /**
                  * we are supposed to have what we are looking for in the option list.
                  */
                 else {
                     vm.selectedItem(_.find(vm.data, filterModel));
                 }
-                
+
                 isModelValueInitialized = true;
             }
             /**
@@ -535,29 +537,29 @@ function aptCreateSelectorDirective(builder) {
                 vm.resetSelect();
             }
         }
-        
+
         function selectedItemFn(value) {
             if (!arguments.length) {
                 return getter();
             }
-            
+
             setter();
-            
+
             function getter() {
                 if (!vm.model) {
                     return;
                 }
-                
+
                 return _selectedItem;
             }
-            
+
             function setter() {
-                
+
                 /**
                  * clear the keyword, make sure this is placed at top.
                  */
                 vm.keyword = null;
-                
+
                 if (_.isUndefined(value)) {
                     /**
                      * nullify the selectItem. issue #2284
@@ -566,33 +568,33 @@ function aptCreateSelectorDirective(builder) {
                     _selectedItem = null;
                     return;
                 }
-                
+
                 if (_.isEqual(vm.selectItem, value)) {
                     return;
                 }
-                
+
                 _selectedItem = value;
                 vm.selectItem = _selectedItem;
-                
+
                 /**
                  * null is used for resetting model.
                  * note that aptField directive may broadcast('reset-model')
                  */
                 if (value !== null) {
                     vm.model = _selectedItem[getPrimaryKey()];
-                    
+
                 }
                 else {
                     vm.model = null;
                 }
-                
+
                 /**
                  * without this, formController does not update its $dirty state.
                  */
                 if (vm.$ngModelController) {
                     vm.$ngModelController.$setViewValue(vm.model);
                 }
-                
+
                 /**
                  * trigger the change event if any listening
                  *
@@ -609,7 +611,7 @@ function aptCreateSelectorDirective(builder) {
                 }
             }
         }
-        
+
         function clickFn(item) {
             if (_.isFunction(vm.onClick)) {
                 $timeout(function () {
@@ -617,18 +619,18 @@ function aptCreateSelectorDirective(builder) {
                 });
             }
         }
-        
+
         function unlockFn() {
             vm.locked = false;
         }
-        
+
         function resetSelectFn() {
             selectedItemFn(null);
             if (_.isFunction(vm.onReset)) {
                 vm.onReset({builder: builder});
             }
         }
-        
+
         function addNewFn() {
             var builderObj = {
                 type      : builder.domain,
@@ -638,13 +640,13 @@ function aptCreateSelectorDirective(builder) {
             };
             restOp.addNew(builderObj);
         }
-        
+
         function editFn() {
-            
+
             if (_.isNull(_selectedItem)) {
                 return;
             }
-            
+
             /**
              * if selectedItem is coming from search result,
              * we are supposed to be getting the result from customGET/search
@@ -660,11 +662,11 @@ function aptCreateSelectorDirective(builder) {
             if (!_selectedItem.hasOwnProperty('restangularized') || !_selectedItem.restangularized) {
                 _selectedItem = Restangular.restangularizeElement(null, _selectedItem, model._route);
             }
-            
+
             var builderObj = {
                 type  : builder.domain,
                 suffix: vm.formHandlerSuffix ? vm.formHandlerSuffix : builder.suffix.form,
-                
+
                 /**
                  * not sure why we have used .get() method here.
                  * get() method will return a promise
@@ -673,36 +675,36 @@ function aptCreateSelectorDirective(builder) {
                  */
                 // data      : _selectedItem.get(),
                 data: _selectedItem,
-                
+
                 modalClass: 'slide-up'
             };
             restOp.edit(builderObj);
-            
+
         }
-        
+
         function searchFn(keyword) {
             if (vm.searchable === false) {
                 return;
             }
-            
+
             if (!keyword) {
                 return;
             }
-            
+
             if (false && keyword.length < 3) {
                 return;
             }
-            
+
             vm.keyword                    = keyword;
             filterObject[getPrimaryKey()] = vm.model;
-            
+
             return reload();
         }
-        
+
         function reloadFn(options) {
             return reload(options);
         }
-        
+
         function reload(options) {
             /**
              * `vm.datasource` is externally supplied datasource,
@@ -714,7 +716,7 @@ function aptCreateSelectorDirective(builder) {
                 }
                 return;
             }
-            
+
             /**
              * if the condition required to show data is not satisfied
              * make sure we dont show anything, so empty out the vm.data
@@ -725,7 +727,7 @@ function aptCreateSelectorDirective(builder) {
                 // deferred.resolve([]);
                 return;
             }
-            
+
             /**
              * if we are in loading phase, don't start again.
              */
@@ -733,10 +735,10 @@ function aptCreateSelectorDirective(builder) {
                 // deferred.reject('isLoading');
                 return;
             }
-            
+
             var pkey  = getPrimaryKey();
             var force = options && options.force ? options.force : false;
-            
+
             if (!force) {
                 if ((vm.keyword == '' || _.isNull(vm.keyword) || _.isUndefined(vm.keyword))
                     && filterObject.hasOwnProperty(pkey)
@@ -747,79 +749,77 @@ function aptCreateSelectorDirective(builder) {
                     return;
                 }
             }
-            
+
             vm.isLoading = true;
-            
+
             // service.loadRepo(getCombinedFilter());
-            
+
             var modelService   = getModelService();
             var combinedFilter = getCombinedFilter();
-            modelService
-                .getList(combinedFilter)
-                .then(
-                    function (data) {
-                        aptUtils.emptyAndMerge(vm.data, data);
-                        
-                        ///
-                        
-                        /**
-                         * set the selectedItem
-                         */
-                        if (vm.model) {
-                            var findBy    = _.set({}, pkey, parseInt(vm.model));
-                            var foundItem = _.find(vm.data, findBy);
-                            if (foundItem) {
-                                vm.selectedItem(foundItem);
-                            }
+            modelService.getList(combinedFilter).then(
+                function (data) {
+                    aptUtils.emptyAndMerge(vm.data, data);
+
+                    ///
+
+                    /**
+                     * set the selectedItem
+                     */
+                    if (vm.model) {
+                        var findBy    = _.set({}, pkey, parseInt(vm.model));
+                        var foundItem = _.find(vm.data, findBy);
+                        if (foundItem) {
+                            vm.selectedItem(foundItem);
                         }
-                        NotifyingService.notify(builder.domain + ':loaded', data);
                     }
-                );
+                    NotifyingService.notify(builder.domain + ':loaded', data);
+                }
+            );
         }
-        
+
         function init() {
-            
+
             initModelValue();
-            
+
             if (!filterObject) {
                 filterObject = {};
             }
-            
+
             if (vm.filterObject) {
                 _.merge(filterObject, vm.filterObject);
             }
-            
+
             if (_.isUndefined(vm.limit)) {
                 vm.limit = 25;
             }
-            
+
             if (vm.searchable === false) {
                 vm.limit = null;
             }
-            
+
             vm.keyword = null;
-            
+
             if (vm.filterGroup) {
                 filterObject['groupname'] = vm.filterGroup;
             }
-            
+
             $scope.$on('reset-model', function (event) {
                 selectedItemFn(null);
                 event.preventDefault();
             });
-            
+
             NotifyingService.subscribe($scope, builder.domain + ':loaded', function (event, data) {
                 onDataLoaded(data);
             });
         }
-        
+
         // function getCombinedFilter() {
         //     return angular.merge(filterObject, {
         //         key  : vm.keyword,
         //         limit: vm.limit
         //     });
         // }
-        
+
         // function getCombinedFilter() {
         //     var obj  = {};
         //     var pkey = getPrimaryKey();
@@ -830,11 +830,11 @@ function aptCreateSelectorDirective(builder) {
         //
         //     return obj;
         // }
-        
+
         function getCombinedFilter() {
             var obj  = filterObject;
             var pkey = getPrimaryKey();
-            
+
             if (vm.keyword) {
                 obj.keyword = vm.keyword;
             }
@@ -853,16 +853,16 @@ function aptCreateSelectorDirective(builder) {
             else {
                 delete obj[pkey];
             }
-            
+
             return obj;
         }
-        
+
         function getModelService() {
             return vm.subRoute
                 ? Restangular.all(model._route + '/' + vm.subRoute)
                 : model;
         }
-        
+
         function onDataLoaded() {
             initModelValue();
             // /**
@@ -875,21 +875,22 @@ function aptCreateSelectorDirective(builder) {
             //         vm.selectedItem(foundItem);
             //     }
             // }
-            
+
             ///
-            
+
             vm.isLoading = false;
             // deferred.resolve(data);
-            
+
             if (_.isFunction(vm.onLoad)) {
                 vm.onLoad({data: vm.data});
             }
-            
+
         }
-        
+
         function getPrimaryKey() {
             return vm.overridePrimaryKey ? vm.overridePrimaryKey : builder.getPrimaryKey();
         }
     }
 }
+
 aptCreateSelectorDirective.ctr = 0;
