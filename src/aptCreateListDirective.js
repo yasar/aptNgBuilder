@@ -210,22 +210,22 @@ function aptCreateListDirective(builder) {
     
                 return service.edit(item);
                 
-                /**
-                 * edit conf ile dısarıdan popup
-                 * suffix
-                 * stay durumlarını set edebiliyoruz
-                 */
-                if (_.isUndefined(vm.editConf)) {
-                    vm.editConf = {};
-                }
-                _.defaults(vm.editConf, {
-                    popup           : true,
-                    suffix          : builder.suffix.form,
-                    stay            : true,
-                    ignoreFromServer: false
-                });
-                //return service.edit(item, popup);
-                return service.edit(item, vm.editConf);
+                // /**
+                //  * edit conf ile dısarıdan popup
+                //  * suffix
+                //  * stay durumlarını set edebiliyoruz
+                //  */
+                // if (_.isUndefined(vm.editConf)) {
+                //     vm.editConf = {};
+                // }
+                // _.defaults(vm.editConf, {
+                //     popup           : true,
+                //     suffix          : builder.suffix.form,
+                //     stay            : true,
+                //     ignoreFromServer: false
+                // });
+                // //return service.edit(item, popup);
+                // return service.edit(item, vm.editConf);
             }
         }
         
